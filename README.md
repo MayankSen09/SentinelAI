@@ -51,44 +51,48 @@ If an agent goes rogue, the **Circuit Breaker** auto-freezes it on-chain after 3
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      SOLANA DEVNET                            │
-│                                                              │
-│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│   │ AgentProfile │  │ AgentPolicy  │  │ System Prog  │      │
-│   │ (PDA)        │  │ (PDA)        │  │ (CPI Target) │      │
-│   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
-│          │                 │                  │              │
-│   ┌──────┴─────────────────┴──────────────────┴──────┐      │
-│   │         sentinel_ai  (Anchor Program)            │      │
-│   │  Instructions:                                    │      │
-│   │    • initialize_agent_profile                     │      │
-│   │    • set_policy                                   │      │
-│   │    • submit_transaction (firewall pipeline)       │      │
-│   │    • unfreeze_agent                               │      │
-│   │  Events:                                          │      │
-│   │    • TransactionProcessed                         │      │
-│   │    • CircuitBreakerTripped                        │      │
-│   │    • AgentUnfrozen                                │      │
-│   └──────────────────────────────────────────────────┘      │
-└──────────────────────────────────────────────────────────────┘
-        ▲                          ▲
-        │ invoke instructions      │ WebSocket subscribe
-        │                          │ (onAccountChange + onLogs)
-┌───────┴──────────┐     ┌────────┴──────────────────────────┐
-│  BACKEND (API)   │     │  FRONTEND (Dashboard)             │
-│  Express / Bun   │     │  Next.js + Tailwind               │
-│                  │     │                                    │
-│  POST /execute   │◄────│  SimulationPanel (6 scenarios)     │
-│  GET /resource   │◄────│  x402 Resource Purchase            │
-│  GET /audit      │◄────│  AuditTrail (SHA-256 verified)     │
-│                  │     │                                    │
-│  • Firewall      │     │  • AgentStatus + BadgeChips        │
-│  • x402 Router   │     │  • PolicyForm (6 fields)           │
-│  • PER Provider  │     │  • ActivityFeed (real-time)        │
-│  • Audit Logger  │     │  • Wallet Connect (Phantom/Solflare)│
-└──────────────────┘     └────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph SOLANA["SOLANA DEVNET"]
+        AP["AgentProfile\n(PDA)"]
+        APo["AgentPolicy\n(PDA)"]
+        SP["System Program\n(CPI Target)"]
+        subgraph PROGRAM["sentinel_ai — Anchor Program"]
+            I1["initialize_agent_profile"]
+            I2["set_policy"]
+            I3["submit_transaction\n(firewall pipeline)"]
+            I4["unfreeze_agent"]
+            E1["TransactionProcessed"]
+            E2["CircuitBreakerTripped"]
+            E3["AgentUnfrozen"]
+        end
+        AP --- PROGRAM
+        APo --- PROGRAM
+        SP --- PROGRAM
+    end
+
+    subgraph BACKEND["BACKEND — Express / Bun"]
+        B1["POST /execute"]
+        B2["GET /api/resource (x402)"]
+        B3["GET /api/audit"]
+        B4["Firewall Validator"]
+        B5["x402 Router"]
+        B6["PER Provider"]
+        B7["Audit Logger"]
+    end
+
+    subgraph FRONTEND["FRONTEND — Next.js + Tailwind"]
+        F1["AgentStatus + BadgeChips"]
+        F2["PolicyForm (6 fields)"]
+        F3["SimulationPanel (6 scenarios)"]
+        F4["ActivityFeed (real-time)"]
+        F5["AuditTrail (SHA-256)"]
+        F6["Wallet Connect"]
+    end
+
+    BACKEND -->|"invoke instructions"| SOLANA
+    FRONTEND -->|"WebSocket subscribe\n(onAccountChange + onLogs)"| SOLANA
+    FRONTEND -->|"API calls"| BACKEND
 ```
 
 ---
