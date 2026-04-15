@@ -1,0 +1,378 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ─── SentinelAI Cyber-Noir Design System ─────────────────────────────────── */
+
+@theme {
+  --color-void: #0a0a0f;
+  --color-surface: #12121a;
+  --color-elevated: #1a1a2e;
+  --color-border: #2a2a3e;
+  --color-border-active: #3a3a5e;
+
+  --color-text-primary: #e8e8f0;
+  --color-text-secondary: #8888aa;
+  --color-text-muted: #555577;
+
+  --color-trusted: #00ff88;
+  --color-trusted-glow: rgba(0, 255, 136, 0.2);
+  --color-risky: #ffaa00;
+  --color-risky-glow: rgba(255, 170, 0, 0.2);
+  --color-blocked: #ff3355;
+  --color-blocked-glow: rgba(255, 51, 85, 0.2);
+  --color-private: #aa55ff;
+  --color-private-glow: rgba(170, 85, 255, 0.2);
+  --color-x402: #00aaff;
+  --color-x402-glow: rgba(0, 170, 255, 0.2);
+
+  --color-accent: #00ff88;
+  --color-accent-hover: #00cc6a;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ─── Global Styles ───────────────────────────────────────────────────────── */
+
+body {
+  background-color: var(--color-void);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Subtle dot grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Faint radial glow from top */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(0, 255, 136, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Glassmorphism Card ──────────────────────────────────────────────────── */
+
+.glass-card {
+  background: rgba(18, 18, 26, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  transition: border-color 200ms ease, transform 200ms ease;
+  position: relative;
+  z-index: 1;
+}
+
+.glass-card:hover {
+  border-color: var(--color-border-active);
+  transform: translateY(-2px);
+}
+
+/* ─── Status Badges ───────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-trusted {
+  background: var(--color-trusted-glow);
+  color: var(--color-trusted);
+  border: 1px solid rgba(0, 255, 136, 0.25);
+}
+
+.badge-risky {
+  background: var(--color-risky-glow);
+  color: var(--color-risky);
+  border: 1px solid rgba(255, 170, 0, 0.25);
+}
+
+.badge-blocked {
+  background: var(--color-blocked-glow);
+  color: var(--color-blocked);
+  border: 1px solid rgba(255, 51, 85, 0.25);
+  animation: pulse-badge 1.5s infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ─── Form Inputs ─────────────────────────────────────────────────────────── */
+
+.sentinel-input {
+  width: 100%;
+  background: var(--color-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.sentinel-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-trusted-glow);
+}
+
+.sentinel-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-void);
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 200ms ease, transform 100ms ease;
+  font-size: 0.875rem;
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--color-border-active);
+  color: var(--color-text-primary);
+}
+
+/* ─── Simulation Buttons ──────────────────────────────────────────────────── */
+
+.sim-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sim-btn:hover {
+  border-color: var(--color-border-active);
+  transform: translateY(-1px);
+}
+
+.sim-btn:active {
+  transform: scale(0.98);
+}
+
+.sim-btn-valid { border-left: 3px solid var(--color-trusted); }
+.sim-btn-invalid { border-left: 3px solid var(--color-blocked); }
+.sim-btn-risky { border-left: 3px solid var(--color-risky); }
+.sim-btn-x402 { border-left: 3px solid var(--color-x402); }
+
+/* ─── Toggle Switch ──────────────────────────────────────────────────────── */
+
+.toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: background 200ms ease;
+  position: relative;
+}
+
+.toggle-track.active {
+  background: var(--color-private);
+}
+
+.toggle-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: white;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 200ms ease;
+}
+
+.toggle-track.active .toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ─── Activity Feed ───────────────────────────────────────────────────────── */
+
+.feed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: background 200ms ease;
+  animation: slideIn 300ms ease-out;
+}
+
+.feed-row:hover {
+  background: rgba(26, 26, 46, 0.5);
+}
+
+.feed-row:nth-child(odd) {
+  background: rgba(10, 10, 15, 0.3);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Status Dot ──────────────────────────────────────────────────────────── */
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-approved { background: var(--color-trusted); box-shadow: 0 0 6px var(--color-trusted); }
+.status-dot-rejected { background: var(--color-blocked); box-shadow: 0 0 6px var(--color-blocked); }
+
+/* ─── Staggered Entrance Animation ────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-entrance {
+  animation: fadeInUp 500ms ease-out forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 100ms; }
+.delay-2 { animation-delay: 200ms; }
+.delay-3 { animation-delay: 300ms; }
+.delay-4 { animation-delay: 400ms; }
+
+/* ─── Spinner ─────────────────────────────────────────────────────────────── */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Reputation Gauge Arc ────────────────────────────────────────────────── */
+
+@keyframes gaugeArc {
+  from { stroke-dashoffset: 283; }
+}
+
+/* ─── Wallet Adapter Overrides ────────────────────────────────────────────── */
+
+.wallet-adapter-button {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 10px !important;
+  color: var(--color-text-primary) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  height: 40px !important;
+}
+
+.wallet-adapter-button:hover {
+  border-color: var(--color-accent) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-active);
+}

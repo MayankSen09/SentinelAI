@@ -1,0 +1,19 @@
+{
+  "name": "sentinel",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@solana/web3.js": "^1.98.4",
+    "@types/bun": "latest",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.6.0",
+    "chai": "^6.2.2",
+    "mocha": "^11.7.5"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.2"
+  }
+}
