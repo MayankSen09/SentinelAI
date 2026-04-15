@@ -278,12 +278,6 @@ anchor test
 
 ---
 
-## 🤝 Team
-
-Built for the **Colosseum Frontier Hackathon 2026** 🏟️
-
----
-
 ## 📄 License
 
 MIT
