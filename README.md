@@ -46,6 +46,8 @@ If an agent goes rogue, the **Circuit Breaker** auto-freezes it on-chain after 3
 | 🔒 **Private Execution (MagicBlock PER)** | Route sensitive transactions through MagicBlock's Ephemeral Rollups for transaction opacity |
 | 🏅 **Dynamic Badges** | Behavioral scoring chips (Reliable Executor, Privacy Pioneer, Whale Operator, etc.) |
 | ⚡ **Multi-Factor Policies** | Tiered transaction limits — high-value transfers require higher reputation thresholds |
+| 🛠️ **Type Safety & Linting** | Hardened codebase with strict TypeScript `verbatimModuleSyntax` and non-null assertions |
+
 
 ---
 
