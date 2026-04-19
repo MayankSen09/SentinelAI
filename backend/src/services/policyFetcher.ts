@@ -8,7 +8,7 @@
  */
 
 import { PublicKey, Connection } from "@solana/web3.js";
-import { AgentPolicy } from "../models/types";
+import type { AgentPolicy } from "../models/types";
 
 /** PDA seed prefix for AgentPolicy accounts */
 const AGENT_POLICY_SEED = "agent_policy";
@@ -76,7 +76,7 @@ function deserializeAgentPolicy(data: Buffer): AgentPolicy {
   );
   const minReputation = Number(data.readBigUInt64LE(offset + 72));
   const privateMode = data[offset + 80] === 1;
-  const bump = data[offset + 81];
+  const bump = data[offset + 81] || 0;
   const highValueThreshold = Number(data.readBigUInt64LE(offset + 82));
   const highValueMinReputation = Number(data.readBigUInt64LE(offset + 90));
 

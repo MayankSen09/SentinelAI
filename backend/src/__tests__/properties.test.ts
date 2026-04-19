@@ -19,7 +19,7 @@ import { buildLogEntry, clearLogs } from "../utils/logger";
 import { applyPER } from "../services/perHandler";
 import { validateTransaction } from "../services/firewallValidator";
 import { routeX402 } from "../services/x402Router";
-import { AgentPolicy, LogEntry } from "../models/types";
+import type { AgentPolicy, LogEntry } from "../models/types";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

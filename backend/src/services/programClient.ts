@@ -9,7 +9,7 @@
 import { PublicKey, Connection, Keypair } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { GetCommitmentSignature } from "@magicblock-labs/ephemeral-rollups-sdk";
-import { AgentPolicy, AgentProfile, ExecutionResult } from "../models/types";
+import type { AgentPolicy, AgentProfile, ExecutionResult } from "../models/types";
 
 // ─── Dual Provider Setup (MagicBlock Integration) ─────────────────────────────
 const MOCK_WALLET = new anchor.Wallet(Keypair.generate());

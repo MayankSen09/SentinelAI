@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 
 // Mock resources for x402 demonstration
 export const X402_RESOURCES: Record<string, { price: number; name: string }> = {

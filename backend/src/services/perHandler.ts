@@ -6,7 +6,7 @@
  * Requirements: 6.2, 7.1
  */
 
-import { LogEntry, ExecutionResult, ExecuteResponse } from "../models/types";
+import type { LogEntry, ExecutionResult, ExecuteResponse } from "../models/types";
 
 /**
  * Apply PER redaction to a log entry.

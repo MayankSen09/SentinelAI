@@ -1,17 +1,18 @@
 [toolchain]
+anchor_version = "0.30.1"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.devnet]
+[programs.localnet]
 sentinel_ai = "CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "bun run test"
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
 [hooks]

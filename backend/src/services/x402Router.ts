@@ -8,7 +8,7 @@
  * Requirements: 6.3, 8.1, 8.2, 8.3
  */
 
-import { AgentPolicy, ValidationResult } from "../models/types";
+import type { AgentPolicy, ValidationResult } from "../models/types";
 import { validateTransaction } from "./firewallValidator";
 
 /**

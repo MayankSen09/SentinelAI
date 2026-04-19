@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
  */
 
 import { applyPER, buildResponse, isPrivateMode } from "./perHandler";
-import { LogEntry, ExecutionResult } from "../models/types";
+import type { LogEntry, ExecutionResult } from "../models/types";
 
 describe("perHandler", () => {
   const fullEntry: LogEntry = {

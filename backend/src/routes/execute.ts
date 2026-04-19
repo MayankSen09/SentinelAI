@@ -12,7 +12,8 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import { rateLimit } from "express-rate-limit";
 import { z } from "zod";
 import { fetchAgentPolicy, PolicyNotFoundError } from "../services/policyFetcher";
@@ -22,7 +23,7 @@ import { isPrivateMode, buildResponse } from "../services/perHandler";
 import { submitTransaction } from "../services/programClient";
 import { buildLogEntry, logTransaction, getLogs } from "../utils/logger";
 import { appendAuditLog } from "../services/auditLogger";
-import { ExecuteResponse } from "../models/types";
+import type { ExecuteResponse } from "../models/types";
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.post("/execute", executeRateLimiter, async (req: Request, res: Response) 
     const firstError = parsed.error.errors[0];
     const response: ExecuteResponse = {
       status: "rejected",
-      reason: `Missing field: ${firstError.path.join(".")} — ${firstError.message}`,
+      reason: `Missing field: ${firstError.path.join(".")} — ${firstError.message ?? ''}`,
     };
     res.status(400).json(response);
     return;

@@ -20,10 +20,14 @@ mod tests {
             // Simulate profile initialization
             let profile = AgentProfile {
                 agent_pubkey: pubkey,
+                owner: pubkey,
                 reputation_score: AgentProfile::DEFAULT_REPUTATION,
                 total_transactions: 0,
                 successful_transactions: 0,
                 bump: 255,
+                consecutive_failures: 0,
+                frozen: false,
+                last_transaction_slot: 0,
             };
             
             prop_assert_eq!(profile.reputation_score, 50);
@@ -57,6 +61,8 @@ mod tests {
                 min_reputation,
                 private_mode,
                 bump: 255,
+                high_value_threshold: 0,
+                high_value_min_reputation: 0,
             };
             
             prop_assert_eq!(policy.owner, owner);
@@ -199,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_agent_profile_size() {
-        assert_eq!(AgentProfile::SIZE, 67);
+        assert_eq!(AgentProfile::SIZE, 99);
     }
 
     #[test]

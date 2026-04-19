@@ -7,7 +7,7 @@
  * Requirements: 9.1, 9.2, 9.3
  */
 
-import { LogEntry } from "../models/types";
+import type { LogEntry } from "../models/types";
 
 /** In-memory log storage — replace with DB for production */
 const logs: LogEntry[] = [];
