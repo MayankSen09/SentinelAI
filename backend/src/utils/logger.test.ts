@@ -74,8 +74,8 @@ describe("logger", () => {
 
       const logs = getLogs();
       expect(logs).toHaveLength(2);
-      expect(logs[0].reason).toBe("second");
-      expect(logs[1].reason).toBe("first");
+      expect(logs[0]!.reason).toBe("second");
+      expect(logs[1]!.reason).toBe("first");
     });
 
     it("should filter by agent_pubkey when provided", () => {
@@ -86,7 +86,7 @@ describe("logger", () => {
 
       const logs = getLogs("Agent1");
       expect(logs).toHaveLength(1);
-      expect(logs[0].agent_pubkey).toBe("Agent1");
+      expect(logs[0]!.agent_pubkey).toBe("Agent1");
     });
 
     it("should not return private entries when filtering by agent_pubkey", () => {
