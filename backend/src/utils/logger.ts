@@ -46,6 +46,7 @@ export function buildLogEntry(
  * via buildLogEntry before calling this.
  */
 export function logTransaction(entry: LogEntry): void {
+  if (!entry) return;
   logs.push(entry);
 }
 
