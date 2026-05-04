@@ -24,6 +24,14 @@ export function validateTransaction(
   amount: number,
   receiver: string
 ): ValidationResult {
+  // Check 0: Amount must be positive
+  if (amount <= 0) {
+    return {
+      valid: false,
+      reason: `Transaction amount (${amount} lamports) must be greater than 0`,
+    };
+  }
+
   // Check 1: Amount does not exceed policy maximum
   if (amount > policy.maxAmount) {
     return {
