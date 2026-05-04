@@ -10,7 +10,7 @@ mod tests;
 
 use instructions::*;
 
-declare_id!("CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY");
+declare_id!("4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH");
 
 /// SentinelAI — On-chain Execution Control Layer for autonomous AI agents.
 ///

@@ -1,6 +1,6 @@
 import { appendFile } from "fs/promises";
 import path from "path";
-import { LogEntry } from "../models/types";
+import type { LogEntry } from "../models/types";
 import { sha256 } from "crypto-hash"; // we installed crypto-hash
 
 const AUDIT_LOG_FILE = path.join(__dirname, "../../audit_log.jsonl");

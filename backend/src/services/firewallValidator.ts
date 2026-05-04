@@ -8,7 +8,7 @@
  * Requirements: 4.1, 4.2, 4.3, 8.1
  */
 
-import { AgentPolicy, ValidationResult } from "../models/types";
+import type { AgentPolicy, ValidationResult } from "../models/types";
 
 /**
  * Validate a transaction against the agent's policy.
