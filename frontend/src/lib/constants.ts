@@ -32,6 +32,14 @@ export const SIMULATION_PRESETS = {
     payment_type: 'normal' as const,
     variant: 'invalid' as const,
   },
+  zeroAmount: {
+    label: 'Zero Amount',
+    description: 'Amount is zero (rejected by firewall)',
+    amount: 0,
+    receiver: MOCK_ALLOWED_RECEIVER,
+    payment_type: 'normal' as const,
+    variant: 'invalid' as const,
+  },
   invalidReceiver: {
     label: 'Invalid Receiver',
     description: 'Receiver does not match the policy allowlist',
