@@ -107,5 +107,10 @@ describe("logger", () => {
       clearLogs();
       expect(getLogs()).toHaveLength(0);
     });
+
+    it("should gracefully handle undefined entry passed to logTransaction", () => {
+      logTransaction(undefined as any);
+      expect(getLogs()).toHaveLength(0);
+    });
   });
 });
