@@ -86,6 +86,7 @@ export default function DashboardPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [compactView, setCompactView] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
   const agentId = 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
 
   useEffect(() => {
@@ -255,7 +256,7 @@ export default function DashboardPage() {
   }, [addLog, fetchBackendProfile, fetchAuditLogs]);
 
   return (
-    <div style={{ background: darkBg, color: '#fff', minHeight: '100vh', fontFamily: sans }}>
+    <div style={{ background: highContrast ? '#000' : darkBg, color: '#fff', minHeight: '100vh', fontFamily: sans }}>
 
       {/* ═══ TOP NAV ══════════════════════════════════════════════════════ */}
       <nav style={{ background: 'rgba(13,13,13,0.95)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${cardBorder}`, position: 'sticky', top: 0, zIndex: 50 }}>
@@ -341,8 +342,8 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: 11, color: '#eee' }}>High Contrast</span>
-                      <button style={{ width: 32, height: 16, background: '#333', borderRadius: 8, border: 'none', cursor: 'pointer', position: 'relative' }}>
-                        <div style={{ width: 12, height: 12, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: 2 }} />
+                      <button onClick={() => setHighContrast(!highContrast)} style={{ width: 32, height: 16, background: highContrast ? gold : '#333', borderRadius: 8, border: 'none', cursor: 'pointer', position: 'relative' }}>
+                        <div style={{ width: 12, height: 12, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: highContrast ? 18 : 2, transition: 'all 0.2s' }} />
                       </button>
                     </div>
                     <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -406,19 +407,17 @@ export default function DashboardPage() {
         </aside>
 
         {/* ═══ MAIN CONTENT ═══════════════════════════════════════════════ */}
-        <main style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: compactView ? '16px 24px' : 32, overflowY: 'auto' }}>
           {/* Header */}
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px' }}>
-              {activeTab === 'Overview' && <>Overview <em style={{ fontStyle: 'italic', color: gold }}>Dashboard</em></>}
-              {activeTab === 'Governance' && <>Shield <em style={{ fontStyle: 'italic', color: gold }}>Governance</em></>}
-              {activeTab === 'Developer' && <>Developer <em style={{ fontStyle: 'italic', color: gold }}>Console</em></>}
-            </h1>
-            <p style={{ fontSize: 14, color: textDim, lineHeight: 1.6, margin: 0, maxWidth: 600 }}>
-              {activeTab === 'Overview' && 'Autonomous threat monitoring and risk management system active. Protocol 4.0.2 is currently enforcing all shield policies.'}
-              {activeTab === 'Governance' && 'Manage shield policies, review agent compliance, and configure execution guardrails for autonomous agents.'}
-              {activeTab === 'Developer' && 'API reference, endpoint testing, and integration documentation for the SentinelAI protocol.'}
-            </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: compactView ? 16 : 32 }}>
+            <div>
+              <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1, margin: '0 0 4px' }}>OPERATIONAL DASHBOARD</h2>
+              <p style={{ color: textDim, fontSize: 13 }}>Sentinel AI Instance: <span style={{ color: gold }}>{agentId}</span></p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: gold, letterSpacing: 2 }}>NODE: SOLANA-DEVNET-01</div>
+              <div style={{ fontSize: 10, color: textDim, marginTop: 4 }}>LAST SYNC: {auditLogs[0]?.time || 'LIVE'}</div>
+            </div>
           </div>
 
           {activeTab === 'Overview' && (<>

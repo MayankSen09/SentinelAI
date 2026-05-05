@@ -72,7 +72,7 @@ export default function LandingPage() {
             ))}
           </div>
           {/* CTA */}
-          <Link href="/dashboard" style={{ fontSize: 11, letterSpacing: 1.5, background: gold, color: '#000', padding: '8px 18px', borderRadius: 4, textDecoration: 'none', fontWeight: 600 }}>
+          <Link href="/onboarding" style={{ fontSize: 11, letterSpacing: 1.5, background: gold, color: '#000', padding: '8px 18px', borderRadius: 4, textDecoration: 'none', fontWeight: 600 }}>
             LAUNCH TERMINAL
           </Link>
         </div>
@@ -97,7 +97,7 @@ export default function LandingPage() {
           </p>
           {/* Buttons */}
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-            <Link href="/dashboard" style={{ background: gold, color: '#000', padding: '12px 28px', borderRadius: 4, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textDecoration: 'none' }}>
+            <Link href="/onboarding" style={{ background: gold, color: '#000', padding: '12px 28px', borderRadius: 4, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textDecoration: 'none' }}>
               LAUNCH DASHBOARD
             </Link>
             <a href="#protocol" style={{ background: 'transparent', color: '#ccc', border: `1px solid ${cardBorder}`, padding: '12px 28px', borderRadius: 4, fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textDecoration: 'none' }}>
@@ -235,7 +235,7 @@ export default function LandingPage() {
             <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.7)', margin: 0 }}>Deploy institutional-grade security measures in five minutes.</p>
             <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.5)', margin: '4px 0 0' }}>Mainnet epoch.</p>
           </div>
-          <Link href="/dashboard" style={{ background: '#000', color: gold, padding: '14px 28px', borderRadius: 6, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          <Link href="/onboarding" style={{ background: '#000', color: gold, padding: '14px 28px', borderRadius: 6, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
             ENTER THE TERMINAL
           </Link>
         </div>
