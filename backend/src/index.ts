@@ -50,6 +50,21 @@ app.use(apiRateLimiter);
 
 app.use("/", executeRouter);
 
+// API Status welcome endpoint
+app.get("/", (_req, res) => {
+  res.json({
+    status: "active",
+    message: "Welcome to SentinelAI Security Suite API. The firewall is active and guarding on-chain activities.",
+    documentation: "/health",
+    endpoints: {
+      submit: "POST /execute",
+      logs: "GET /logs",
+      audit: "GET /api/audit",
+      profile: "GET /profile?agent_pubkey=<KEY>"
+    }
+  });
+});
+
 // x402 Resource HTTP 402 Flow Endpoint (Req 18)
 app.get("/api/resource/:resourceId", handleResourceRequest);
 
