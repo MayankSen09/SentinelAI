@@ -91,7 +91,7 @@ export default function DashboardPage() {
   
   const GOOD_AGENT = 'GoodAgent11111111111111111111111111111111111';
   const BAD_AGENT = 'BadAgent99999999999999999999999999999999999';
-  const [agentId, setAgentId] = useState(GOOD_AGENT);
+  const [agentId, setAgentId] = useState('');
   const [inputAgentId, setInputAgentId] = useState('');
 
   useEffect(() => {
@@ -109,6 +109,13 @@ export default function DashboardPage() {
 
   // Poll backend profile every 3s
   const fetchBackendProfile = useCallback(async () => {
+    if (!agentId) {
+      setOnChainRep(null);
+      setOnChainFrozen(false);
+      setOnChainTotalTx(null);
+      setOnChainSuccessTx(null);
+      return;
+    }
     try {
       const res = await fetch(`${backendUrl}/profile?agent_pubkey=${agentId}`);
       if (!res.ok) throw new Error();
@@ -152,6 +159,11 @@ export default function DashboardPage() {
 
   // Poll backend audit logs every 3s
   const fetchAuditLogs = useCallback(async () => {
+    if (!agentId) {
+      setAuditLogs([]);
+      setApprovalPct(0);
+      return;
+    }
     try {
       const res = await fetch(`${backendUrl}/logs?agent_pubkey=${agentId}`);
       if (!res.ok) throw new Error();
@@ -498,10 +510,10 @@ export default function DashboardPage() {
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="4" width="16" height="16" rx="3" /><circle cx="9" cy="9" r="1.5" fill="currentColor" /><circle cx="15" cy="9" r="1.5" fill="currentColor" /><circle cx="9" cy="15" r="1.5" fill="currentColor" /><circle cx="15" cy="15" r="1.5" fill="currentColor" /></svg>
                   <div>
                     <h3 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: 0 }}>Security Node Status</h3>
-                    <div style={{ fontSize: 11, color: gold, marginTop: 4, fontFamily: mono, letterSpacing: 1 }}>TARGET: {agentId}</div>
+                    <div style={{ fontSize: 11, color: gold, marginTop: 4, fontFamily: mono, letterSpacing: 1 }}>TARGET: {agentId || 'No active agent tracked. Paste an address or select a demo profile.'}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: onChainFrozen ? red : (connected ? green : textDim), boxShadow: `0 0 8px ${onChainFrozen ? red : (connected ? green : 'transparent')}`, display: 'inline-block' }} />
-                      <span style={{ fontSize: 12, color: onChainFrozen ? red : (connected ? green : textDim) }}>{onChainFrozen ? 'Agent Frozen' : (connected ? 'Agent Active' : 'Not Connected')}</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: !agentId ? textDim : (onChainFrozen ? red : (connected ? green : textDim)), boxShadow: `0 0 8px ${!agentId ? 'transparent' : (onChainFrozen ? red : (connected ? green : 'transparent'))}`, display: 'inline-block' }} />
+                      <span style={{ fontSize: 12, color: !agentId ? textDim : (onChainFrozen ? red : (connected ? green : textDim)) }}>{!agentId ? 'No Active Agent' : (onChainFrozen ? 'Agent Frozen' : (connected ? 'Agent Active' : 'Not Connected'))}</span>
                     </div>
                   </div>
                 </div>
@@ -524,7 +536,7 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span style={{ fontSize: 11, color: textDim, textTransform: 'uppercase', letterSpacing: 0.5 }}>Status</span>
-                  <span style={{ fontSize: 20, fontWeight: 700, color: onChainFrozen ? red : green }}>{onChainFrozen ? 'FROZEN' : (connected ? 'LIVE' : '—')}</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: !agentId ? textDim : (onChainFrozen ? red : green) }}>{!agentId ? '—' : (onChainFrozen ? 'FROZEN' : (connected ? 'LIVE' : '—'))}</span>
                 </div>
               </div>
             </div>
