@@ -8,8 +8,11 @@ skip-lint = false
 [programs.localnet]
 sentinel_ai = "CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY"
 
+[programs.devnet]
+sentinel_ai = "4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH"
+
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

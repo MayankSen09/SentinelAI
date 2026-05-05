@@ -58,3 +58,5 @@ agave-install.exe
 # Lock files (optional — keep bun.lock if you want reproducible builds)
 # bun.lock
 test-ledger/
+.anchor/test-ledger/
+.vercel

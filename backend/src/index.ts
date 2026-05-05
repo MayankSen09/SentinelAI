@@ -36,7 +36,7 @@ const apiRateLimiter = rateLimit({
 app.use(apiRateLimiter);
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: "*", // Allow all origins for devnet demo
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   })

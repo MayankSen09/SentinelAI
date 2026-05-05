@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Solana-Devnet-9945FF?style=for-the-badge&logo=solana&logoColor=white" alt="Solana Devnet" />
   <img src="https://img.shields.io/badge/Anchor-0.30-blueviolet?style=for-the-badge" alt="Anchor" />
-  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/Bun-Runtime-f5f5f5?style=for-the-badge&logo=bun&logoColor=black" alt="Bun" />
   <img src="https://img.shields.io/badge/Hackathon-Colosseum%20Frontier%202026-orange?style=for-the-badge" alt="Colosseum" />
 </p>
@@ -100,13 +100,69 @@ graph TB
 
 ---
 
+## 🌐 Live Deployment
+
+| Component | Platform | URL |
+|:----------|:---------|:----|
+| **Smart Contract** | Solana Devnet | [`4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH`](https://explorer.solana.com/address/4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH?cluster=devnet) |
+| **Frontend dApp** | Vercel | [sentinel-ai-dapp.vercel.app](https://sentinel-ai-dapp.vercel.app) |
+| **Backend API** | Railway | [sentinel-ai-backend-production.up.railway.app](https://sentinel-ai-backend-production.up.railway.app/health) |
+
+### Deployment Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        SENTINELAI — DEPLOYMENT MAP                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│   ┌───────────────────────┐         ┌───────────────────────┐             │
+│   │   VERCEL (Frontend)   │  API    │   RAILWAY (Backend)   │             │
+│   │                       │ ──────► │                       │             │
+│   │  sentinel-ai-dapp     │/execute │  sentinel-ai-backend  │             │
+│   │  .vercel.app          │ /logs   │  -production          │             │
+│   │                       │ /audit  │  .up.railway.app      │             │
+│   │  • Next.js 16         │         │                       │             │
+│   │  • Wallet Adapter     │         │  • Express + Node 20  │             │
+│   │  • Anchor IDL         │         │  • Firewall Validator │             │
+│   │  • Zustand Store      │         │  • x402 Router        │             │
+│   └───────────┬───────────┘         │  • Audit Logger       │             │
+│               │                     └───────────┬───────────┘             │
+│               │ WebSocket                       │ RPC                    │
+│               │ Subscribe                       │ Invoke                 │
+│               ▼                                 ▼                        │
+│   ┌─────────────────────────────────────────────────────────┐             │
+│   │              SOLANA DEVNET (Smart Contract)             │             │
+│   │                                                         │             │
+│   │  Program: 4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH │             │
+│   │                                                         │             │
+│   │  ┌──────────────────┐    ┌──────────────────┐           │             │
+│   │  │  AgentProfile    │    │   AgentPolicy    │           │             │
+│   │  │  PDA             │    │   PDA            │           │             │
+│   │  │                  │    │                  │           │             │
+│   │  │ • reputation     │    │ • max_amount     │           │             │
+│   │  │ • frozen         │    │ • allowed_recv   │           │             │
+│   │  │ • consecutive    │    │ • min_reputation │           │             │
+│   │  │   failures       │    │ • private_mode   │           │             │
+│   │  │ • tx counters    │    │ • tiered policy  │           │             │
+│   │  └──────────────────┘    └──────────────────┘           │             │
+│   │                                                         │             │
+│   │  Instructions:                                          │             │
+│   │  1. initialize_agent_profile  3. submit_transaction     │             │
+│   │  2. set_policy                4. unfreeze_agent         │             │
+│   └─────────────────────────────────────────────────────────┘             │
+│                                                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |:------|:-----------|
 | **Smart Contract** | Rust, Anchor 0.30, Solana (Devnet) |
 | **Backend API** | TypeScript, Express, Bun runtime |
-| **Frontend** | Next.js 15, Tailwind CSS, `@solana/wallet-adapter` |
+| **Frontend** | Next.js 16, Tailwind CSS, `@solana/wallet-adapter` |
 | **Privacy** | MagicBlock Ephemeral Rollups (PER) |
 | **Payments** | x402 HTTP 402 Protocol |
 | **Audit** | SHA-256 hashed JSONL append-only logs |
@@ -173,7 +229,7 @@ sentinel/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/MayankSen09/SentinelAI.git
+git clone https://github.com/Vansh-Gokhale/SentinelAI.git
 cd SentinelAI
 bun install
 ```
