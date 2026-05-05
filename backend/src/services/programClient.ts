@@ -163,6 +163,11 @@ export function unfreezeAgent(agentPubkey: string): void {
   profile.consecutiveFailures = 0;
 }
 
+export function freezeAgent(agentPubkey: string): void {
+  const profile = getOrCreateProfile(agentPubkey);
+  profile.frozen = true;
+}
+
 export function setProfileReputation(
   agentPubkey: string,
   reputationScore: number

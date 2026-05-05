@@ -135,4 +135,70 @@ router.get("/logs", (req: Request, res: Response) => {
   res.json(logs);
 });
 
+// ─── POST /freeze ───────────────────────────────────────────────────────────
+
+const FreezeSchema = z.object({
+  agent_pubkey: z.string().min(32).max(44),
+});
+
+router.post("/freeze", (req: Request, res: Response) => {
+  const parsed = FreezeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ status: "error", reason: "Invalid agent_pubkey" });
+    return;
+  }
+  const { freezeAgent } = require("../services/programClient");
+  freezeAgent(parsed.data.agent_pubkey);
+
+  const logEntry = buildLogEntry(
+    parsed.data.agent_pubkey, "normal", 0, "",
+    "rejected", "Agent manually frozen by owner", false
+  );
+  logTransaction(logEntry);
+  appendAuditLog(logEntry);
+
+  res.json({ status: "frozen", agent_pubkey: parsed.data.agent_pubkey });
+});
+
+// ─── POST /unfreeze ─────────────────────────────────────────────────────────
+
+router.post("/unfreeze", (req: Request, res: Response) => {
+  const parsed = FreezeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ status: "error", reason: "Invalid agent_pubkey" });
+    return;
+  }
+  const { unfreezeAgent } = require("../services/programClient");
+  unfreezeAgent(parsed.data.agent_pubkey);
+
+  const logEntry = buildLogEntry(
+    parsed.data.agent_pubkey, "normal", 0, "",
+    "approved", "Agent unfrozen by owner", false
+  );
+  logTransaction(logEntry);
+  appendAuditLog(logEntry);
+
+  res.json({ status: "unfrozen", agent_pubkey: parsed.data.agent_pubkey });
+});
+
+// ─── GET /profile ───────────────────────────────────────────────────────────
+
+router.get("/profile", (req: Request, res: Response) => {
+  const agentPubkey = req.query.agent_pubkey as string | undefined;
+  if (!agentPubkey) {
+    res.status(400).json({ error: "agent_pubkey query parameter required" });
+    return;
+  }
+  const { getProfile, getOrCreateProfile } = require("../services/programClient");
+  const profile = getProfile(agentPubkey) || getOrCreateProfile(agentPubkey);
+  res.json({
+    agentPubkey: profile.agentPubkey?.toBase58?.() || agentPubkey,
+    reputationScore: profile.reputationScore,
+    totalTransactions: profile.totalTransactions,
+    successfulTransactions: profile.successfulTransactions,
+    consecutiveFailures: profile.consecutiveFailures,
+    frozen: profile.frozen,
+  });
+});
+
 export default router;
