@@ -88,7 +88,10 @@ export default function DashboardPage() {
   const [compactView, setCompactView] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
   const [backendUrl, setBackendUrl] = useState(BACKEND_URL);
-  const agentId = 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
+  
+  const GOOD_AGENT = 'GoodAgent11111111111111111111111111111111111';
+  const BAD_AGENT = 'BadAgent99999999999999999999999999999999999';
+  const [agentId, setAgentId] = useState(GOOD_AGENT);
 
   useEffect(() => {
     if (agentList.length === 0) {
@@ -412,8 +415,22 @@ export default function DashboardPage() {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: compactView ? 16 : 32 }}>
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1, margin: '0 0 4px' }}>OPERATIONAL DASHBOARD</h2>
-              <p style={{ color: textDim, fontSize: 13 }}>Sentinel AI Instance: <span style={{ color: gold }}>{agentId}</span></p>
+              <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1, margin: '0 0 12px' }}>OPERATIONAL DASHBOARD</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ color: textDim, fontSize: 13 }}>Sentinel AI Instance:</span>
+                <select 
+                  value={agentId} 
+                  onChange={(e) => {
+                    setAgentId(e.target.value);
+                    setAuditLogs([]);
+                    setOnChainRep(null);
+                  }}
+                  style={{ background: inputBg, color: gold, border: `1px solid ${cardBorder}`, borderRadius: 6, padding: '6px 12px', fontSize: 13, outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value={GOOD_AGENT}>Agent Alpha (High Trust)</option>
+                  <option value={BAD_AGENT}>Agent Beta (Rogue / Frozen)</option>
+                </select>
+              </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: gold, letterSpacing: 2 }}>NODE: SOLANA-DEVNET-01</div>
@@ -604,8 +621,8 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={labelStyle}>Mode</label>
                 <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: gold, boxShadow: `0 0 6px ${gold}`, display: 'inline-block' }} />
-                  Demo (Simulation)
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: green, boxShadow: `0 0 6px ${green}`, display: 'inline-block' }} />
+                  Production (Active)
                 </div>
               </div>
             </div>
@@ -767,7 +784,7 @@ export default function DashboardPage() {
                     { label: 'Network', value: 'Solana Devnet' },
                     { label: 'Anchor Version', value: '0.30.1' },
                     { label: 'Backend', value: backendUrl },
-                    { label: 'Mode', value: 'Demo (Simulation)' },
+                    { label: 'Mode', value: 'Production' },
                     { label: 'Instructions', value: '5 (init, policy, submit, freeze, unfreeze)' },
                   ].map((item) => (
                     <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8 }}>

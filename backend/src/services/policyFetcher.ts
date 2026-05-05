@@ -100,6 +100,31 @@ const MOCK_ALLOWED_RECEIVER = "GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK";
 /** In-memory mock policy store — used in demo mode */
 const mockPolicies: Map<string, AgentPolicy> = new Map();
 
+// Pre-seed demo agent policies
+const GOOD_AGENT = "GoodAgent11111111111111111111111111111111111";
+mockPolicies.set(GOOD_AGENT, {
+  owner: new PublicKey(GOOD_AGENT),
+  maxAmount: 10_000_000_000, // 10 SOL limit
+  allowedReceiver: new PublicKey(MOCK_ALLOWED_RECEIVER),
+  minReputation: 20,
+  privateMode: true,
+  bump: 255,
+  highValueThreshold: 5_000_000_000,
+  highValueMinReputation: 80,
+});
+
+const BAD_AGENT = "BadAgent99999999999999999999999999999999999";
+mockPolicies.set(BAD_AGENT, {
+  owner: new PublicKey(BAD_AGENT),
+  maxAmount: 100_000, // Very low limit
+  allowedReceiver: new PublicKey(MOCK_ALLOWED_RECEIVER),
+  minReputation: 60, // Requires 60, but agent has 15
+  privateMode: false,
+  bump: 255,
+  highValueThreshold: 0,
+  highValueMinReputation: 0,
+});
+
 /**
  * Get or create a mock policy for the given agent.
  * Used in demo/simulation mode.

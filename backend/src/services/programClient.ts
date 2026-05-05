@@ -35,6 +35,31 @@ export const providerEphemeralRollup = new anchor.AnchorProvider(
 
 const agentProfiles: Map<string, AgentProfile> = new Map();
 
+// Pre-seed demo agents for hackathon presentation
+const GOOD_AGENT = "GoodAgent11111111111111111111111111111111111";
+agentProfiles.set(GOOD_AGENT, {
+  agentPubkey: new PublicKey(GOOD_AGENT),
+  reputationScore: 95,
+  totalTransactions: 142,
+  successfulTransactions: 142,
+  bump: 255,
+  consecutiveFailures: 0,
+  frozen: false,
+  lastTransactionSlot: 0,
+});
+
+const BAD_AGENT = "BadAgent99999999999999999999999999999999999";
+agentProfiles.set(BAD_AGENT, {
+  agentPubkey: new PublicKey(BAD_AGENT),
+  reputationScore: 15,
+  totalTransactions: 24,
+  successfulTransactions: 5,
+  bump: 255,
+  consecutiveFailures: 3,
+  frozen: true,
+  lastTransactionSlot: 0,
+});
+
 export function getOrCreateProfile(agentPubkey: string): AgentProfile {
   if (agentProfiles.has(agentPubkey)) {
     return agentProfiles.get(agentPubkey)!;
