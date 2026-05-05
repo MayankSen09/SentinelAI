@@ -112,45 +112,45 @@ graph TB
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        SENTINELAI — DEPLOYMENT MAP                        │
+│                        SENTINELAI — DEPLOYMENT MAP                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                           │
-│   ┌───────────────────────┐         ┌───────────────────────┐             │
-│   │   VERCEL (Frontend)   │  API    │    VERCEL (Backend)   │             │
-│   │                       │ ──────► │                       │             │
-│   │  sentinel-protocol-   │/execute │  sentinelai-backend-  │             │
-│   │  dashboard.vercel.app │ /logs   │  coral.vercel.app     │             │
-│   │                       │ /audit  │                       │             │
-│   │  • Next.js 16         │         │                       │             │
-│   │  • Wallet Adapter     │         │  • Express + Node 20  │             │
-│   │  • Anchor IDL         │         │  • Firewall Validator │             │
-│   │  • Zustand Store      │         │  • x402 Router        │             │
-│   └───────────┬───────────┘         │  • Audit Logger       │             │
-│               │                     └───────────┬───────────┘             │
-│               │ WebSocket                       │ RPC                    │
-│               │ Subscribe                       │ Invoke                 │
-│               ▼                                 ▼                        │
-│   ┌─────────────────────────────────────────────────────────┐             │
-│   │              SOLANA DEVNET (Smart Contract)             │             │
-│   │                                                         │             │
-│   │  Program: 4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH │             │
-│   │                                                         │             │
-│   │  ┌──────────────────┐    ┌──────────────────┐           │             │
-│   │  │  AgentProfile    │    │   AgentPolicy    │           │             │
-│   │  │  PDA             │    │   PDA            │           │             │
-│   │  │                  │    │                  │           │             │
-│   │  │ • reputation     │    │ • max_amount     │           │             │
-│   │  │ • frozen         │    │ • allowed_recv   │           │             │
-│   │  │ • consecutive    │    │ • min_reputation │           │             │
-│   │  │   failures       │    │ • private_mode   │           │             │
-│   │  │ • tx counters    │    │ • tiered policy  │           │             │
-│   │  └──────────────────┘    └──────────────────┘           │             │
-│   │                                                         │             │
-│   │  Instructions:                                          │             │
-│   │  1. initialize_agent_profile  3. submit_transaction     │             │
-│   │  2. set_policy                4. unfreeze_agent         │             │
-│   └─────────────────────────────────────────────────────────┘             │
-│                                                                           │
+│                                                                             │
+│   ┌───────────────────────┐         ┌───────────────────────┐               │
+│   │   VERCEL (Frontend)   │  API    │    VERCEL (Backend)   │               │
+│   │                       │ ──────► │                       │               │
+│   │  sentinel-protocol-   │/execute │  sentinelai-backend-  │               │
+│   │  dashboard.vercel.app │ /logs   │  coral.vercel.app     │               │
+│   │                       │ /audit  │                       │               │
+│   │  • Next.js 16         │         │                       │               │
+│   │  • Wallet Adapter     │         │  • Express + Node 20  │               │
+│   │  • Anchor IDL         │         │  • Firewall Validator │               │
+│   │  • Zustand Store      │         │  • x402 Router        │               │
+│   └───────────┬───────────┘         │  • Audit Logger       │               │
+│               │                     └───────────┬───────────┘               │
+│               │ WebSocket                       │ RPC                       │
+│               │ Subscribe                       │ Invoke                    │
+│               ▼                                 ▼                           │
+│   ┌─────────────────────────────────────────────────────────┐               │
+│   │              SOLANA DEVNET (Smart Contract)             │               │
+│   │                                                         │               │
+│   │  Program: 4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH  │               │
+│   │                                                         │               │
+│   │  ┌──────────────────┐    ┌──────────────────┐           │               │
+│   │  │  AgentProfile    │    │   AgentPolicy    │           │               │
+│   │  │  PDA             │    │   PDA            │           │               │
+│   │  │                  │    │                  │           │               │
+│   │  │ • reputation     │    │ • max_amount     │           │               │
+│   │  │ • frozen         │    │ • allowed_recv   │           │               │
+│   │  │ • consecutive    │    │ • min_reputation │           │               │
+│   │  │   failures       │    │ • private_mode   │           │               │
+│   │  │ • tx counters    │    │ • tiered policy  │           │               │
+│   │  └──────────────────┘    └──────────────────┘           │               │
+│   │                                                         │               │
+│   │  Instructions:                                          │               │
+│   │  1. initialize_agent_profile  3. submit_transaction     │               │
+│   │  2. set_policy                4. unfreeze_agent         │               │
+│   └─────────────────────────────────────────────────────────┘               │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
