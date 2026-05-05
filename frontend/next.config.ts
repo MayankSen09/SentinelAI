@@ -12,10 +12,6 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  /* Ignore ESLint errors during build */
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   /* Ignore TypeScript errors during build */
   typescript: {

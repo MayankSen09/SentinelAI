@@ -30,7 +30,7 @@ export const PROGRAM_ID = (() => {
   } catch (err) {
     console.warn("Invalid NEXT_PUBLIC_PROGRAM_ID, falling back to default.");
   }
-  return new PublicKey('4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH');
+  return new PublicKey('CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY');
 })();
 
 /* ─── PDA derivation helpers ──────────────────────────────────────────── */
@@ -232,6 +232,24 @@ export function useSentinelProgram() {
     return tx;
   }, [program, wallet.publicKey]);
 
+  /* ─── Write: Freeze Agent ──────────────────────────────────────────── */
+  const freezeAgent = useCallback(async (agentPubkey: PublicKey): Promise<string> => {
+    if (!program || !wallet.publicKey) throw new Error('Wallet not connected');
+
+    const [profilePDA] = deriveAgentProfilePDA(agentPubkey);
+
+    const tx = await (program.methods as any)
+      .freezeAgent()
+      .accounts({
+        agentProfile: profilePDA,
+        agent: agentPubkey,
+        owner: wallet.publicKey,
+      })
+      .rpc();
+
+    return tx;
+  }, [program, wallet.publicKey]);
+
   return {
     program,
     provider,
@@ -245,6 +263,7 @@ export function useSentinelProgram() {
     setPolicy,
     submitTransaction,
     unfreezeAgent,
+    freezeAgent,
     // Helpers
     deriveAgentProfilePDA,
     deriveAgentPolicyPDA,

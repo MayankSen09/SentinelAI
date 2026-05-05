@@ -22,7 +22,7 @@ export const PROGRAM_ID = (() => {
   } catch (err) {
     console.warn("Invalid NEXT_PUBLIC_PROGRAM_ID, falling back to default.");
   }
-  return new PublicKey('4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH');
+  return new PublicKey('CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY');
 })();
 
 /**

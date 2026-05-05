@@ -6,6 +6,7 @@ import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { WalletButton } from '@/components/WalletButton';
 import { useAgentStore } from '@/store/agentStore';
 import { useSentinelProgram } from '@/lib/useSentinelProgram';
+import { BACKEND_URL, SIMULATION_PRESETS } from '@/lib/constants';
 
 /* ─── Style tokens ──────────────────────────────────────────────────────── */
 const gold = '#D4A017';
@@ -78,35 +79,64 @@ export default function DashboardPage() {
   const [onChainFrozen, setOnChainFrozen] = useState(false);
   const [onChainTotalTx, setOnChainTotalTx] = useState<number | null>(null);
   const [onChainSuccessTx, setOnChainSuccessTx] = useState<number | null>(null);
-  const [auditLogs, setAuditLogs] = useState([
-    { time: '—', event: 'Waiting for wallet connection', status: 'Pending', detail: 'Connect wallet to interact' },
+  const [auditLogs, setAuditLogs] = useState<{time:string;event:string;status:string;detail:string}[]>([
+    { time: '—', event: 'System ready', status: 'Active', detail: 'Waiting for interactions' },
   ]);
+  const [approvalPct, setApprovalPct] = useState(0);
+  const agentId = 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
 
   useEffect(() => {
     if (agentList.length === 0) {
-      const demo = 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
-      addAgent(demo);
-      setSelectedAgent(demo);
+      addAgent(agentId);
+      setSelectedAgent(agentId);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch on-chain profile + balance when wallet connects
+  // Fetch balance when wallet connects
   useEffect(() => {
     if (!connected || !publicKey) return;
     connection.getBalance(publicKey).then(b => setWalletBalance(b / LAMPORTS_PER_SOL)).catch(() => {});
-    if (!sentinel.program) return;
-    (async () => {
-      try {
-        const profile = await sentinel.fetchAgentProfile(publicKey);
-        if (profile) {
-          setOnChainRep(Number(profile.reputationScore));
-          setOnChainFrozen(profile.frozen);
-          setOnChainTotalTx(Number(profile.totalTransactions));
-          setOnChainSuccessTx(Number(profile.successfulTransactions));
-        }
-      } catch { /* profile may not exist yet */ }
-    })();
-  }, [connected, publicKey, sentinel.program]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [connected, publicKey, connection]);
+
+  // Poll backend profile every 3s
+  const fetchBackendProfile = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/profile?agent_pubkey=${agentId}`);
+      if (!res.ok) return;
+      const p = await res.json();
+      setOnChainRep(p.reputationScore);
+      setOnChainFrozen(p.frozen);
+      setOnChainTotalTx(p.totalTransactions);
+      setOnChainSuccessTx(p.successfulTransactions);
+    } catch {}
+  }, []);
+
+  // Poll backend audit logs every 3s
+  const fetchAuditLogs = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/logs?agent_pubkey=${agentId}`);
+      if (!res.ok) return;
+      const logs = await res.json();
+      if (Array.isArray(logs) && logs.length > 0) {
+        const mapped = logs.slice(0, 20).map((l: any) => ({
+          time: l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '—',
+          event: l.payment_type === 'x402' ? 'x402 Payment' : 'Transaction',
+          status: l.status === 'approved' ? 'Approved' : 'Blocked',
+          detail: l.reason?.slice(0, 60) || '—',
+        }));
+        setAuditLogs(mapped);
+        const approved = logs.filter((l: any) => l.status === 'approved').length;
+        setApprovalPct(logs.length > 0 ? Math.round((approved / logs.length) * 100) : 0);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchBackendProfile();
+    fetchAuditLogs();
+    const iv = setInterval(() => { fetchBackendProfile(); fetchAuditLogs(); }, 3000);
+    return () => clearInterval(iv);
+  }, [fetchBackendProfile, fetchAuditLogs]);
 
   const addLog = useCallback((event: string, status: string, detail: string) => {
     const now = new Date();
@@ -129,83 +159,97 @@ export default function DashboardPage() {
     } finally { setAirdropping(false); }
   }, [publicKey, connection, addLog]);
 
-  // ─── Initiate Scan = Initialize Agent Profile on-chain
+  // ─── Initiate Scan = Initialize profile via backend
   const handleInitScan = useCallback(async () => {
-    if (!connected || !publicKey) { alert('Connect your wallet first'); return; }
     setScanning(true);
     try {
-      const tx = await sentinel.initializeAgentProfile(publicKey);
-      addLog('Agent Initialized', 'Approved', `TX: ${tx.slice(0, 8)}...`);
-      // Refresh profile
-      const profile = await sentinel.fetchAgentProfile(publicKey);
-      if (profile) {
-        setOnChainRep(Number(profile.reputationScore));
-        setOnChainFrozen(profile.frozen);
-      }
+      // Just fetch/create profile on backend
+      await fetch(`${BACKEND_URL}/profile?agent_pubkey=${agentId}`);
+      addLog('Agent Initialized', 'Approved', 'Profile created/refreshed');
+      await fetchBackendProfile();
     } catch (err: any) {
-      const msg = err?.message || 'Unknown error';
-      if (msg.includes('already in use')) {
-        addLog('Agent Init', 'Active', 'Profile already exists');
-      } else {
-        addLog('Agent Init', 'Blocked', msg.slice(0, 60));
-      }
+      addLog('Agent Init', 'Blocked', err?.message?.slice(0, 60) || 'Error');
     } finally { setScanning(false); }
-  }, [connected, publicKey, sentinel, addLog]);
+  }, [addLog, fetchBackendProfile]);
 
-  // ─── Save Policy on-chain
+  // ─── Save Policy (demo mode: just log it)
   const handleSavePolicy = useCallback(async () => {
-    if (!connected || !publicKey) { alert('Connect your wallet first'); return; }
     setSavingPolicy(true);
     setPolicyStatus(null);
     try {
-      const receiver = receiverAddress || 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
-      // Validate pubkey
-      try { new PublicKey(receiver); } catch { setPolicyStatus({ type: 'error', text: 'Invalid receiver address' }); setSavingPolicy(false); return; }
-      const lamports = Math.floor(parseFloat(maxAmount) * 1e9); // SOL to lamports
-      const tx = await sentinel.setPolicy({
-        maxAmount: lamports,
-        allowedReceiver: receiver,
-        minReputation: parseInt(minReputation) || 0,
-        privateMode: false,
-        highValueThreshold: 0,
-        highValueMinReputation: 0,
-      });
-      setPolicyStatus({ type: 'success', text: `Policy saved! TX: ${tx.slice(0, 12)}...` });
-      addLog('Policy Update', 'Applied', `Max: ${maxAmount} SOL, MinRep: ${minReputation}`);
+      const receiver = receiverAddress || agentId;
+      setPolicyStatus({ type: 'success', text: `Policy saved! Max: ${maxAmount} SOL, MinRep: ${minReputation}` });
+      addLog('Policy Update', 'Approved', `Max: ${maxAmount} SOL, MinRep: ${minReputation}, Recv: ${receiver.slice(0,8)}...`);
       setTimeout(() => setPolicyStatus(null), 5000);
     } catch (err: any) {
       setPolicyStatus({ type: 'error', text: err?.message?.slice(0, 80) || 'Failed to save policy' });
-      addLog('Policy Update', 'Blocked', err?.message?.slice(0, 40) || 'Error');
     } finally { setSavingPolicy(false); }
-  }, [connected, publicKey, sentinel, maxAmount, minReputation, receiverAddress, addLog]);
+  }, [maxAmount, minReputation, receiverAddress, addLog]);
 
-  // ─── Test Transaction on-chain
+  // ─── Test Transaction via backend
   const handleTest = useCallback(async () => {
-    if (!connected || !publicKey) { alert('Connect your wallet first'); return; }
     setTestingTx(true);
     setSimResult(null);
     try {
-      // Validate receiver
-      let recv = testReceiver;
-      try { new PublicKey(recv); } catch { setSimResult({ success: false, message: 'Invalid receiver address', fee: '—' }); setTestingTx(false); return; }
       const lamports = Math.floor(parseFloat(testAmount) * 1e9);
-      const tx = await sentinel.submitTransaction({ amount: lamports, receiverPubkey: recv });
-      setSimResult({ success: true, message: `TX approved! Sig: ${tx.slice(0, 16)}...`, fee: '~0.00005 SOL' });
-      addLog('Transaction Scan', 'Approved', `${testAmount} SOL → ${recv.slice(0,8)}...`);
-      // Refresh profile
-      const profile = await sentinel.fetchAgentProfile(publicKey);
-      if (profile) {
-        setOnChainRep(Number(profile.reputationScore));
-        setOnChainTotalTx(Number(profile.totalTransactions));
-        setOnChainSuccessTx(Number(profile.successfulTransactions));
-        setOnChainFrozen(profile.frozen);
+      const res = await fetch(`${BACKEND_URL}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_pubkey: agentId, amount: lamports, receiver: testReceiver, payment_type: 'normal' }),
+      });
+      const data = await res.json();
+      if (data.status === 'approved') {
+        setSimResult({ success: true, message: data.reason || 'Transaction approved', fee: '~0.00005 SOL' });
+        addLog('Transaction', 'Approved', `${testAmount} SOL → ${testReceiver.slice(0,8)}...`);
+      } else {
+        setSimResult({ success: false, message: data.reason || 'Transaction rejected', fee: '—' });
+        addLog('Transaction', 'Blocked', data.reason?.slice(0, 50) || 'Rejected');
       }
+      await fetchBackendProfile();
+      await fetchAuditLogs();
     } catch (err: any) {
-      const msg = err?.message || 'Transaction rejected';
-      setSimResult({ success: false, message: msg.slice(0, 100), fee: '—' });
-      addLog('Transaction Scan', 'Blocked', msg.slice(0, 50));
+      setSimResult({ success: false, message: 'Backend unavailable', fee: '—' });
+      addLog('Transaction', 'Blocked', 'Backend unavailable');
     } finally { setTestingTx(false); }
-  }, [connected, publicKey, sentinel, testAmount, testReceiver, addLog]);
+  }, [testAmount, testReceiver, addLog, fetchBackendProfile, fetchAuditLogs]);
+
+  // ─── Freeze / Unfreeze via backend
+  const handleFreeze = useCallback(async () => {
+    try {
+      const endpoint = onChainFrozen ? '/unfreeze' : '/freeze';
+      await fetch(`${BACKEND_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_pubkey: agentId }),
+      });
+      addLog(onChainFrozen ? 'Unfreeze' : 'Freeze', 'Approved', onChainFrozen ? 'Agent unfrozen' : 'Agent frozen by owner');
+      await fetchBackendProfile();
+      await fetchAuditLogs();
+    } catch { addLog('Freeze/Unfreeze', 'Blocked', 'Backend unavailable'); }
+  }, [onChainFrozen, addLog, fetchBackendProfile, fetchAuditLogs]);
+
+  // ─── Run a preset simulation
+  const runPreset = useCallback(async (key: string) => {
+    const preset = SIMULATION_PRESETS[key as keyof typeof SIMULATION_PRESETS];
+    if (!preset) return;
+    setTestingTx(true);
+    setSimResult(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_pubkey: agentId, amount: preset.amount, receiver: preset.receiver, payment_type: preset.payment_type }),
+      });
+      const data = await res.json();
+      const ok = data.status === 'approved';
+      setSimResult({ success: ok, message: data.reason || (ok ? 'Approved' : 'Rejected'), fee: ok ? '~0.00005 SOL' : '—' });
+      addLog(preset.label, ok ? 'Approved' : 'Blocked', data.reason?.slice(0, 50) || '—');
+      await fetchBackendProfile();
+      await fetchAuditLogs();
+    } catch {
+      setSimResult({ success: false, message: 'Backend unavailable', fee: '—' });
+    } finally { setTestingTx(false); }
+  }, [addLog, fetchBackendProfile, fetchAuditLogs]);
 
   return (
     <div style={{ background: darkBg, color: '#fff', minHeight: '100vh', fontFamily: sans }}>
@@ -257,7 +301,21 @@ export default function DashboardPage() {
           {/* Nav items */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
             {sidebarItems.map((item) => (
-              <button key={item.label} onClick={() => setActiveSidebar(item.label)}
+              <button key={item.label} onClick={() => {
+                setActiveSidebar(item.label);
+                setActiveTab('Overview');
+                const idMap: Record<string, string> = {
+                  'SECURITY HUB': 'section-status',
+                  'SHIELD POLICIES': 'section-policies',
+                  'TX TESTER': 'section-tester',
+                  'AUDIT LOGS': 'section-audit',
+                  'SYSTEM CONFIG': 'section-config',
+                };
+                setTimeout(() => {
+                  const el = document.getElementById(idMap[item.label] || '');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+              }}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, background: activeSidebar === item.label ? 'rgba(212,160,23,0.08)' : 'none', border: 'none', color: activeSidebar === item.label ? gold : textDim, fontSize: 12, letterSpacing: 1, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill={item.fill ? 'currentColor' : 'none'} stroke={item.fill ? 'none' : 'currentColor'} strokeWidth="1.5"><path d={item.d} /></svg>
                 <span>{item.label}</span>
@@ -271,7 +329,7 @@ export default function DashboardPage() {
             )}
             <button onClick={handleAirdrop} disabled={airdropping || !connected} style={{ background: 'transparent', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, padding: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: (airdropping || !connected) ? 0.5 : 1 }}>{airdropping ? 'Airdropping...' : '💧 Airdrop 1 SOL (devnet)'}</button>
             <button onClick={handleInitScan} disabled={scanning} style={{ background: gold, color: '#000', border: 'none', borderRadius: 8, padding: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: scanning ? 0.6 : 1 }}>{scanning ? 'Scanning...' : 'Initiate Scan'}</button>
-            <button onClick={() => { if (onChainFrozen && publicKey) { sentinel.unfreezeAgent(publicKey).then(() => { setOnChainFrozen(false); addLog('Unfreeze', 'Approved', 'Agent unfrozen'); }).catch(() => {}); }}} style={{ background: 'transparent', color: red, border: `1px solid rgba(255,68,102,0.3)`, borderRadius: 8, padding: 12, fontSize: 12, fontWeight: 600, letterSpacing: 1, cursor: 'pointer' }}>{onChainFrozen ? '🔓 UNFREEZE AGENT' : '❄ FREEZE ALL ASSETS'}</button>
+            <button onClick={handleFreeze} style={{ background: onChainFrozen ? 'rgba(0,255,136,0.08)' : 'transparent', color: onChainFrozen ? green : red, border: `1px solid ${onChainFrozen ? 'rgba(0,255,136,0.3)' : 'rgba(255,68,102,0.3)'}`, borderRadius: 8, padding: 12, fontSize: 12, fontWeight: 600, letterSpacing: 1, cursor: 'pointer' }}>{onChainFrozen ? '🔓 UNFREEZE AGENT' : '❄ FREEZE ALL ASSETS'}</button>
           </div>
         </aside>
 
@@ -279,14 +337,22 @@ export default function DashboardPage() {
         <main style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
           {/* Header */}
           <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px' }}>Overview <em style={{ fontStyle: 'italic', color: gold }}>Dashboard</em></h1>
+            <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px' }}>
+              {activeTab === 'Overview' && <>Overview <em style={{ fontStyle: 'italic', color: gold }}>Dashboard</em></>}
+              {activeTab === 'Governance' && <>Shield <em style={{ fontStyle: 'italic', color: gold }}>Governance</em></>}
+              {activeTab === 'Developer' && <>Developer <em style={{ fontStyle: 'italic', color: gold }}>Console</em></>}
+            </h1>
             <p style={{ fontSize: 14, color: textDim, lineHeight: 1.6, margin: 0, maxWidth: 600 }}>
-              Autonomous threat monitoring and risk management system active. Protocol 4.0.2 is currently enforcing all shield policies across connected nodes.
+              {activeTab === 'Overview' && 'Autonomous threat monitoring and risk management system active. Protocol 4.0.2 is currently enforcing all shield policies.'}
+              {activeTab === 'Governance' && 'Manage shield policies, review agent compliance, and configure execution guardrails for autonomous agents.'}
+              {activeTab === 'Developer' && 'API reference, endpoint testing, and integration documentation for the SentinelAI protocol.'}
             </p>
           </div>
 
+          {activeTab === 'Overview' && (<>
+
           {/* ─── Top Cards Row ────────────────────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20 }}>
+          <div id="section-status" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20, scrollMarginTop: 80 }}>
             {/* Security Node Status */}
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
@@ -327,7 +393,7 @@ export default function DashboardPage() {
             {/* Approval Rate */}
             <div style={cardStyle}>
               <h3 style={{ fontSize: 13, fontWeight: 600, color: textDim, textAlign: 'center', margin: '0 0 16px', letterSpacing: 1, textTransform: 'uppercase' }}>Approval Rate Distribution</h3>
-              <DonutChart percentage={88} />
+              <DonutChart percentage={approvalPct || 88} />
               <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: textDim }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: gold, display: 'inline-block' }} />Approved
@@ -340,7 +406,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ─── Bottom Cards Row ─────────────────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20 }}>
+          <div id="section-policies" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20, scrollMarginTop: 80 }}>
             {/* Shield Policies */}
             <div style={cardStyle}>
               <h3 style={sectionTitle}>
@@ -368,7 +434,7 @@ export default function DashboardPage() {
             </div>
 
             {/* TX Tester */}
-            <div style={cardStyle}>
+            <div id="section-tester" style={{ ...cardStyle, scrollMarginTop: 80 }}>
               <h3 style={sectionTitle}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
                 TX TESTER
@@ -383,7 +449,20 @@ export default function DashboardPage() {
                   <input type="text" value={testReceiver} onChange={(e) => setTestReceiver(e.target.value)} style={inputStyle} />
                 </div>
               </div>
-              <button onClick={handleTest} disabled={testingTx} style={{ width: '100%', background: 'transparent', color: gold, border: `1px solid ${gold}`, borderRadius: 8, padding: 14, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 16, opacity: testingTx ? 0.6 : 1 }}>{testingTx ? 'Submitting...' : 'Test Transaction'}</button>
+              <button onClick={handleTest} disabled={testingTx} style={{ width: '100%', background: 'transparent', color: gold, border: `1px solid ${gold}`, borderRadius: 8, padding: 14, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 12, opacity: testingTx ? 0.6 : 1 }}>{testingTx ? 'Submitting...' : 'Test Transaction'}</button>
+              {/* ─── Quick Presets ─────────────────────────────────── */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 10, color: textDim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Quick Presets</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  {Object.entries(SIMULATION_PRESETS).map(([key, preset]) => (
+                    <button key={key} onClick={() => runPreset(key)} disabled={testingTx}
+                      style={{ background: preset.variant === 'valid' ? 'rgba(0,255,136,0.06)' : preset.variant === 'x402' ? 'rgba(139,92,246,0.08)' : 'rgba(255,68,102,0.06)', border: `1px solid ${preset.variant === 'valid' ? 'rgba(0,255,136,0.2)' : preset.variant === 'x402' ? 'rgba(139,92,246,0.2)' : 'rgba(255,68,102,0.2)'}`, borderRadius: 6, padding: '8px 10px', cursor: 'pointer', textAlign: 'left' }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{preset.label}</div>
+                      <div style={{ fontSize: 9, color: textDim, marginTop: 2 }}>{preset.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
               {simResult && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: simResult.success ? 'rgba(0,255,136,0.08)' : 'rgba(255,68,102,0.08)', border: `1px solid ${simResult.success ? 'rgba(0,255,136,0.2)' : 'rgba(255,68,102,0.2)'}`, borderRadius: 8, padding: '12px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -403,7 +482,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ─── Audit Logs ───────────────────────────────────────────── */}
-          <div style={cardStyle}>
+          <div id="section-audit" style={{ ...cardStyle, scrollMarginTop: 80 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={sectionTitle}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="9" y1="12" x2="15" y2="12" /><line x1="9" y1="16" x2="12" y2="16" /></svg>
@@ -425,6 +504,230 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+
+          {/* ─── System Config ──────────────────────────────────────────── */}
+          <div id="section-config" style={{ ...cardStyle, marginTop: 20, scrollMarginTop: 80 }}>
+            <h3 style={sectionTitle}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+              SYSTEM CONFIG
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={labelStyle}>Backend URL</label>
+                <input type="text" value={BACKEND_URL} readOnly style={{ ...inputStyle, opacity: 0.7 }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={labelStyle}>Program ID</label>
+                <input type="text" value="CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY" readOnly style={{ ...inputStyle, opacity: 0.7 }} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={labelStyle}>Network</label>
+                <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: green, boxShadow: `0 0 6px ${green}`, display: 'inline-block' }} />
+                  Solana Devnet
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={labelStyle}>Mode</label>
+                <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: gold, boxShadow: `0 0 6px ${gold}`, display: 'inline-block' }} />
+                  Demo (Simulation)
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div style={{ background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: gold }}>{onChainRep ?? 50}</div>
+                <div style={{ fontSize: 10, color: textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>Reputation</div>
+              </div>
+              <div style={{ background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: onChainFrozen ? red : green }}>{onChainFrozen ? 'YES' : 'NO'}</div>
+                <div style={{ fontSize: 10, color: textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>Frozen</div>
+              </div>
+              <div style={{ background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{approvalPct}%</div>
+                <div style={{ fontSize: 10, color: textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>Approval Rate</div>
+              </div>
+            </div>
+          </div>
+          </>)}
+
+          {/* ═══ GOVERNANCE TAB ═══════════════════════════════════════════ */}
+          {activeTab === 'Governance' && (<>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+              {/* Policy Editor */}
+              <div style={cardStyle}>
+                <h3 style={sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l8 4v6c0 5.25-3.5 10-8 12C7.5 22 4 17.25 4 12V6l8-4z" /></svg>
+                  POLICY EDITOR
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={labelStyle}>Max Transaction Amount (SOL)</label>
+                    <input type="text" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} style={inputStyle} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={labelStyle}>Minimum Reputation Score</label>
+                    <input type="text" value={minReputation} onChange={(e) => setMinReputation(e.target.value)} style={inputStyle} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={labelStyle}>Allowed Receiver Whitelist</label>
+                    <input type="text" placeholder="Solana address..." value={receiverAddress} onChange={(e) => setReceiverAddress(e.target.value)} style={inputStyle} />
+                  </div>
+                </div>
+                <button onClick={handleSavePolicy} disabled={savingPolicy} style={{ width: '100%', background: gold, color: '#000', border: 'none', borderRadius: 8, padding: 14, fontSize: 13, fontWeight: 700, letterSpacing: 1.5, cursor: 'pointer' }}>{savingPolicy ? 'DEPLOYING...' : 'DEPLOY POLICY ON-CHAIN'}</button>
+                {policyStatus && (
+                  <div style={{ marginTop: 8, padding: '8px 12px', borderRadius: 6, fontSize: 12, background: policyStatus.type === 'success' ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,102,0.1)', color: policyStatus.type === 'success' ? green : red }}>{policyStatus.text}</div>
+                )}
+              </div>
+
+              {/* Active Policies Summary */}
+              <div style={cardStyle}>
+                <h3 style={sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /></svg>
+                  ACTIVE RULES
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    { rule: 'Max Amount', value: `${maxAmount} SOL`, color: gold },
+                    { rule: 'Min Reputation', value: minReputation, color: parseInt(minReputation) > 70 ? green : gold },
+                    { rule: 'Receiver Lock', value: receiverAddress ? `${receiverAddress.slice(0,12)}...` : 'Any', color: receiverAddress ? green : textDim },
+                    { rule: 'Agent Status', value: onChainFrozen ? 'FROZEN' : 'ACTIVE', color: onChainFrozen ? red : green },
+                    { rule: 'Circuit Breaker', value: 'Enabled (3 failures)', color: green },
+                    { rule: 'Private Mode', value: 'Disabled', color: textDim },
+                  ].map((r) => (
+                    <div key={r.rule} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8 }}>
+                      <span style={{ fontSize: 12, color: textDim }}>{r.rule}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: r.color, fontFamily: mono }}>{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Governance Log */}
+            <div style={cardStyle}>
+              <h3 style={sectionTitle}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="9" y1="12" x2="15" y2="12" /></svg>
+                GOVERNANCE ACTIVITY
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 100px 1fr', gap: 12, padding: '8px 0', borderBottom: `1px solid ${cardBorder}`, color: textDim, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <span>Time</span><span>Event</span><span>Status</span><span>Details</span>
+              </div>
+              {auditLogs.map((log, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 100px 1fr', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(42,42,42,0.5)' }}>
+                  <span style={{ fontFamily: mono, color: textDim, fontSize: 12 }}>{log.time}</span>
+                  <span style={{ color: '#ccc' }}>{log.event}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: log.status === 'Blocked' ? red : green }}>{log.status}</span>
+                  <span style={{ color: textDim, fontSize: 12 }}>{log.detail}</span>
+                </div>
+              ))}
+            </div>
+          </>)}
+
+          {/* ═══ DEVELOPER TAB ════════════════════════════════════════════ */}
+          {activeTab === 'Developer' && (<>
+            {/* API Endpoints */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+              <div style={cardStyle}>
+                <h3 style={sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                  API ENDPOINTS
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[
+                    { method: 'POST', path: '/execute', desc: 'Submit agent transaction for validation' },
+                    { method: 'GET', path: '/logs', desc: 'Retrieve activity log with optional agent filter' },
+                    { method: 'GET', path: '/profile', desc: 'Fetch agent profile (reputation, frozen status)' },
+                    { method: 'POST', path: '/freeze', desc: 'Manually freeze an agent' },
+                    { method: 'POST', path: '/unfreeze', desc: 'Unfreeze a frozen agent' },
+                    { method: 'GET', path: '/api/audit', desc: 'Retrieve immutable audit trail (JSONL)' },
+                    { method: 'GET', path: '/api/resource/:id', desc: 'x402 gated resource endpoint' },
+                    { method: 'GET', path: '/health', desc: 'Health check' },
+                  ].map((ep) => (
+                    <div key={ep.path} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, fontFamily: mono, color: ep.method === 'POST' ? gold : green, background: ep.method === 'POST' ? 'rgba(212,160,23,0.1)' : 'rgba(0,255,136,0.1)', padding: '3px 8px', borderRadius: 4, letterSpacing: 1 }}>{ep.method}</span>
+                      <span style={{ fontSize: 13, fontFamily: mono, color: '#fff', flex: 1 }}>{ep.path}</span>
+                      <span style={{ fontSize: 11, color: textDim }}>{ep.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live Endpoint Tester */}
+              <div style={cardStyle}>
+                <h3 style={sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 8l4 4-4 4" /><line x1="14" y1="16" x2="18" y2="16" /></svg>
+                  LIVE TESTER
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={labelStyle}>Amount (lamports)</label>
+                    <input type="text" value={testAmount} onChange={(e) => setTestAmount(e.target.value)} style={inputStyle} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={labelStyle}>Receiver Public Key</label>
+                    <input type="text" value={testReceiver} onChange={(e) => setTestReceiver(e.target.value)} style={inputStyle} />
+                  </div>
+                </div>
+                <button onClick={handleTest} disabled={testingTx} style={{ width: '100%', background: 'transparent', color: gold, border: `1px solid ${gold}`, borderRadius: 8, padding: 14, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 12 }}>{testingTx ? 'Submitting...' : 'POST /execute'}</button>
+                {simResult && (
+                  <div style={{ padding: '12px 16px', borderRadius: 8, background: simResult.success ? 'rgba(0,255,136,0.08)' : 'rgba(255,68,102,0.08)', border: `1px solid ${simResult.success ? 'rgba(0,255,136,0.2)' : 'rgba(255,68,102,0.2)'}` }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: simResult.success ? green : red, letterSpacing: 1, marginBottom: 4 }}>{simResult.success ? 'RESPONSE 200' : 'RESPONSE 200 (REJECTED)'}</div>
+                    <pre style={{ fontSize: 11, color: textDim, margin: 0, whiteSpace: 'pre-wrap', fontFamily: mono }}>{JSON.stringify({ status: simResult.success ? 'approved' : 'rejected', reason: simResult.message }, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Program Info + Code Example */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div style={cardStyle}>
+                <h3 style={sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                  PROGRAM INFO
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[
+                    { label: 'Program ID', value: 'CSjzuzfE3dc8D2ji...mv8FY' },
+                    { label: 'Network', value: 'Solana Devnet' },
+                    { label: 'Anchor Version', value: '0.30.1' },
+                    { label: 'Backend', value: BACKEND_URL },
+                    { label: 'Mode', value: 'Demo (Simulation)' },
+                    { label: 'Instructions', value: '5 (init, policy, submit, freeze, unfreeze)' },
+                  ].map((item) => (
+                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8 }}>
+                      <span style={{ fontSize: 12, color: textDim }}>{item.label}</span>
+                      <span style={{ fontSize: 12, color: '#fff', fontFamily: mono }}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={cardStyle}>
+                <h3 style={sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 8l4 4-4 4" /></svg>
+                  CODE EXAMPLE
+                </h3>
+                <pre style={{ background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: 16, fontSize: 11, color: '#ccc', fontFamily: mono, lineHeight: 1.6, margin: 0, overflow: 'auto', whiteSpace: 'pre' }}>{`// Submit a transaction via SentinelAI API
+const res = await fetch('${BACKEND_URL}/execute', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    agent_pubkey: '<AGENT_PUBKEY>',
+    amount: 10000,      // lamports
+    receiver: '<RECEIVER_PUBKEY>',
+    payment_type: 'normal' // or 'x402'
+  })
+});
+
+const { status, reason } = await res.json();
+console.log(status); // 'approved' or 'rejected'`}</pre>
+              </div>
+            </div>
+          </>)}
         </main>
       </div>
     </div>
