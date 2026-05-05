@@ -1,9 +1,9 @@
 import { appendFile } from "fs/promises";
 import path from "path";
 import type { LogEntry } from "../models/types";
-import { sha256 } from "crypto-hash"; // we installed crypto-hash
+import { createHash } from "crypto";
 
-const AUDIT_LOG_FILE = path.join(__dirname, "../../audit_log.jsonl");
+const AUDIT_LOG_FILE = process.env.VERCEL ? "/tmp/audit_log.jsonl" : path.resolve(process.cwd(), "audit_log.jsonl");
 
 export interface AuditLogEntry {
   original_log: LogEntry;
@@ -13,7 +13,7 @@ export interface AuditLogEntry {
 export async function appendAuditLog(entry: LogEntry): Promise<void> {
   // Compute SHA-256 hash of the JSON stringified entry
   const entryString = JSON.stringify(entry);
-  const hash = await sha256(entryString);
+  const hash = createHash("sha256").update(entryString).digest("hex");
 
   const auditEntry: AuditLogEntry = {
     original_log: entry,

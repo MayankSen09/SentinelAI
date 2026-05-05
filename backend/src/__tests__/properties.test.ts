@@ -296,14 +296,14 @@ describe("Property 24: x402 HTTP 402 Challenge-Response", () => {
 // ─── Property 26: Audit Log Integrity ───────────────────────────────────────
 // Feature: sentinel-ai, Property 26: Audit Log Integrity
 
-import { sha256 } from "crypto-hash";
+import { createHash } from "crypto";
 
 describe("Property 26: Audit Log Integrity", () => {
   it("Audit log hash matches unredacted entry", async () => {
     await fc.assert(
       fc.asyncProperty(arbLogEntry, async (entry) => {
         const entryString = JSON.stringify(entry);
-        const hash = await sha256(entryString);
+        const hash = createHash("sha256").update(entryString).digest("hex");
         
         expect(hash).toBeDefined();
         expect(hash.length).toBe(64);
