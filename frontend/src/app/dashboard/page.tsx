@@ -92,6 +92,7 @@ export default function DashboardPage() {
   const GOOD_AGENT = 'GoodAgent11111111111111111111111111111111111';
   const BAD_AGENT = 'BadAgent99999999999999999999999999999999999';
   const [agentId, setAgentId] = useState(GOOD_AGENT);
+  const [inputAgentId, setInputAgentId] = useState(GOOD_AGENT);
 
   useEffect(() => {
     if (agentList.length === 0) {
@@ -416,20 +417,34 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: compactView ? 16 : 32 }}>
             <div>
               <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1, margin: '0 0 12px' }}>OPERATIONAL DASHBOARD</h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ color: textDim, fontSize: 13 }}>Sentinel AI Instance:</span>
-                <select 
-                  value={agentId} 
-                  onChange={(e) => {
-                    setAgentId(e.target.value);
-                    setAuditLogs([]);
-                    setOnChainRep(null);
-                  }}
-                  style={{ background: inputBg, color: gold, border: `1px solid ${cardBorder}`, borderRadius: 6, padding: '6px 12px', fontSize: 13, outline: 'none', cursor: 'pointer' }}
-                >
-                  <option value={GOOD_AGENT}>Agent Alpha ({GOOD_AGENT.slice(0,6)}...{GOOD_AGENT.slice(-6)})</option>
-                  <option value={BAD_AGENT}>Agent Beta ({BAD_AGENT.slice(0,6)}...{BAD_AGENT.slice(-6)})</option>
-                </select>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: textDim, fontSize: 13, width: 140 }}>Sentinel AI Instance:</span>
+                  <input 
+                    type="text" 
+                    value={inputAgentId} 
+                    onChange={(e) => setInputAgentId(e.target.value)}
+                    placeholder="Enter Solana Agent Address..."
+                    style={{ background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 6, padding: '8px 14px', color: '#fff', fontSize: 13, fontFamily: mono, outline: 'none', width: 340 }} 
+                  />
+                  <button 
+                    onClick={() => {
+                      if (inputAgentId.length >= 32) {
+                        setAgentId(inputAgentId);
+                        setAuditLogs([]);
+                        setOnChainRep(null);
+                      }
+                    }}
+                    style={{ background: gold, color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.5 }}
+                  >
+                    TRACK
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: 12, fontSize: 11, marginLeft: 152 }}>
+                  <span style={{ color: textDim }}>Demo Profiles:</span>
+                  <button onClick={() => { setInputAgentId(GOOD_AGENT); setAgentId(GOOD_AGENT); setAuditLogs([]); setOnChainRep(null); }} style={{ background: 'none', border: 'none', color: green, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Good Agent (Trust 95)</button>
+                  <button onClick={() => { setInputAgentId(BAD_AGENT); setAgentId(BAD_AGENT); setAuditLogs([]); setOnChainRep(null); }} style={{ background: 'none', border: 'none', color: red, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Rogue Agent (Frozen)</button>
+                </div>
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
