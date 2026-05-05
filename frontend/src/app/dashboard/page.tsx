@@ -92,7 +92,7 @@ export default function DashboardPage() {
   const GOOD_AGENT = 'GoodAgent11111111111111111111111111111111111';
   const BAD_AGENT = 'BadAgent99999999999999999999999999999999999';
   const [agentId, setAgentId] = useState(GOOD_AGENT);
-  const [inputAgentId, setInputAgentId] = useState(GOOD_AGENT);
+  const [inputAgentId, setInputAgentId] = useState('');
 
   useEffect(() => {
     if (agentList.length === 0) {
