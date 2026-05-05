@@ -122,6 +122,7 @@ export default function OnboardingPage() {
         )}
 
         {step === 2 && (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, color: gold }}>
               <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
                 <path d="M12 2l8 4v6c0 5.25-3.5 10-8 12C7.5 22 4 17.25 4 12V6l8-4z" />

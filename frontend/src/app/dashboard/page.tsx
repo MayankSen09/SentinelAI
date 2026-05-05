@@ -208,7 +208,6 @@ export default function DashboardPage() {
           ]);
           setApprovalPct(20);
         } else {
-          setAuditLogs([]);
           setApprovalPct(100);
         }
       }
@@ -228,7 +227,6 @@ export default function DashboardPage() {
         ]);
         setApprovalPct(20);
       } else {
-        setAuditLogs([]);
         setApprovalPct(100);
       }
     }
