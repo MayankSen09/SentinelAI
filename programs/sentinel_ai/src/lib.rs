@@ -77,4 +77,11 @@ pub mod sentinel_ai {
     pub fn unfreeze_agent(ctx: Context<UnfreezeAgent>) -> Result<()> {
         instructions::unfreeze_agent::handler(ctx)
     }
+
+    /// Manually freeze an agent — owner-only kill switch.
+    ///
+    /// Sets frozen = true so the agent cannot submit transactions.
+    pub fn freeze_agent(ctx: Context<FreezeAgent>) -> Result<()> {
+        instructions::freeze_agent::handler(ctx)
+    }
 }

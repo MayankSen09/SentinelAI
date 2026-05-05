@@ -9,7 +9,7 @@ skip-lint = false
 sentinel_ai = "CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY"
 
 [programs.devnet]
-sentinel_ai = "4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH"
+sentinel_ai = "CSjzuzfE3dc8D2jiECFvqjiWsxqYP98ixNzMrZ2mv8FY"
 
 [provider]
 cluster = "devnet"
