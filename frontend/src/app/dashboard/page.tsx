@@ -87,6 +87,7 @@ export default function DashboardPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [compactView, setCompactView] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
+  const [backendUrl, setBackendUrl] = useState(BACKEND_URL);
   const agentId = 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function DashboardPage() {
   // Poll backend profile every 3s
   const fetchBackendProfile = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/profile?agent_pubkey=${agentId}`);
+      const res = await fetch(`${backendUrl}/profile?agent_pubkey=${agentId}`);
       if (!res.ok) return;
       const p = await res.json();
       setOnChainRep(p.reputationScore);
@@ -113,12 +114,12 @@ export default function DashboardPage() {
       setOnChainTotalTx(p.totalTransactions);
       setOnChainSuccessTx(p.successfulTransactions);
     } catch {}
-  }, []);
+  }, [backendUrl, agentId]);
 
   // Poll backend audit logs every 3s
   const fetchAuditLogs = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/logs?agent_pubkey=${agentId}`);
+      const res = await fetch(`${backendUrl}/logs?agent_pubkey=${agentId}`);
       if (!res.ok) return;
       const logs = await res.json();
       if (Array.isArray(logs) && logs.length > 0) {
@@ -133,7 +134,7 @@ export default function DashboardPage() {
         setApprovalPct(logs.length > 0 ? Math.round((approved / logs.length) * 100) : 0);
       }
     } catch {}
-  }, []);
+  }, [backendUrl, agentId]);
 
   useEffect(() => {
     fetchBackendProfile();
@@ -196,7 +197,7 @@ export default function DashboardPage() {
     setSimResult(null);
     try {
       const lamports = Math.floor(parseFloat(testAmount) * 1e9);
-      const res = await fetch(`${BACKEND_URL}/execute`, {
+      const res = await fetch(`${backendUrl}/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agent_pubkey: agentId, amount: lamports, receiver: testReceiver, payment_type: 'normal' }),
@@ -215,13 +216,13 @@ export default function DashboardPage() {
       setSimResult({ success: false, message: 'Backend unavailable', fee: '—' });
       addLog('Transaction', 'Blocked', 'Backend unavailable');
     } finally { setTestingTx(false); }
-  }, [testAmount, testReceiver, addLog, fetchBackendProfile, fetchAuditLogs]);
+  }, [testAmount, testReceiver, addLog, fetchBackendProfile, fetchAuditLogs, backendUrl]);
 
   // ─── Freeze / Unfreeze via backend
   const handleFreeze = useCallback(async () => {
     try {
       const endpoint = onChainFrozen ? '/unfreeze' : '/freeze';
-      await fetch(`${BACKEND_URL}${endpoint}`, {
+      await fetch(`${backendUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agent_pubkey: agentId }),
@@ -230,7 +231,7 @@ export default function DashboardPage() {
       await fetchBackendProfile();
       await fetchAuditLogs();
     } catch { addLog('Freeze/Unfreeze', 'Blocked', 'Backend unavailable'); }
-  }, [onChainFrozen, addLog, fetchBackendProfile, fetchAuditLogs]);
+  }, [onChainFrozen, addLog, fetchBackendProfile, fetchAuditLogs, backendUrl]);
 
   // ─── Run a preset simulation
   const runPreset = useCallback(async (key: string) => {
@@ -239,7 +240,7 @@ export default function DashboardPage() {
     setTestingTx(true);
     setSimResult(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/execute`, {
+      const res = await fetch(`${backendUrl}/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agent_pubkey: agentId, amount: preset.amount, receiver: preset.receiver, payment_type: preset.payment_type }),
@@ -253,7 +254,7 @@ export default function DashboardPage() {
     } catch {
       setSimResult({ success: false, message: 'Backend unavailable', fee: '—' });
     } finally { setTestingTx(false); }
-  }, [addLog, fetchBackendProfile, fetchAuditLogs]);
+  }, [addLog, fetchBackendProfile, fetchAuditLogs, backendUrl]);
 
   return (
     <div style={{ background: highContrast ? '#000' : darkBg, color: '#fff', minHeight: '100vh', fontFamily: sans }}>
@@ -585,7 +586,7 @@ export default function DashboardPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={labelStyle}>Backend URL</label>
-                <input type="text" value={BACKEND_URL} readOnly style={{ ...inputStyle, opacity: 0.7 }} />
+                <input type="text" value={backendUrl} onChange={(e) => setBackendUrl(e.target.value)} style={inputStyle} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={labelStyle}>Program ID</label>
@@ -765,7 +766,7 @@ export default function DashboardPage() {
                     { label: 'Program ID', value: 'CSjzuzfE3dc8D2ji...mv8FY' },
                     { label: 'Network', value: 'Solana Devnet' },
                     { label: 'Anchor Version', value: '0.30.1' },
-                    { label: 'Backend', value: BACKEND_URL },
+                    { label: 'Backend', value: backendUrl },
                     { label: 'Mode', value: 'Demo (Simulation)' },
                     { label: 'Instructions', value: '5 (init, policy, submit, freeze, unfreeze)' },
                   ].map((item) => (
@@ -783,7 +784,7 @@ export default function DashboardPage() {
                   CODE EXAMPLE
                 </h3>
                 <pre style={{ background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: 16, fontSize: 11, color: '#ccc', fontFamily: mono, lineHeight: 1.6, margin: 0, overflow: 'auto', whiteSpace: 'pre' }}>{`// Submit a transaction via SentinelAI API
-const res = await fetch('${BACKEND_URL}/execute', {
+const res = await fetch('${backendUrl}/execute', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
