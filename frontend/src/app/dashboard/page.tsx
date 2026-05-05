@@ -169,20 +169,67 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error();
       const logs = await res.json();
       if (Array.isArray(logs) && logs.length > 0) {
-        const mapped = logs.slice(0, 20).map((l: any) => ({
-          time: l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '—',
-          event: l.payment_type === 'x402' ? 'x402 Payment' : 'Transaction',
-          status: l.status === 'approved' ? 'Approved' : 'Blocked',
-          detail: l.reason?.slice(0, 60) || '—',
-        }));
+        const mapped = logs.slice(0, 20).map((l: any) => {
+          let event = 'Transaction';
+          let status = l.status === 'approved' ? 'Approved' : 'Blocked';
+          if (l.reason?.includes('frozen by owner') || l.reason?.includes('manually frozen')) {
+            event = 'Manual Freeze';
+            status = 'Frozen';
+          } else if (l.reason?.includes('unfrozen by owner') || l.reason?.includes('manually unfrozen')) {
+            event = 'Manual Unfreeze';
+            status = 'Unfrozen';
+          } else if (l.payment_type === 'x402') {
+            event = 'x402 Payment';
+          }
+          return {
+            time: l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '—',
+            event,
+            status,
+            detail: l.reason?.slice(0, 60) || '—',
+          };
+        });
         setAuditLogs(mapped);
         const approved = logs.filter((l: any) => l.status === 'approved').length;
         setApprovalPct(Math.round((approved / logs.length) * 100));
       } else {
-        setApprovalPct(agentId === GOOD_AGENT ? 100 : (agentId === BAD_AGENT ? 20 : 100));
+        if (agentId === GOOD_AGENT) {
+          setAuditLogs([
+            { time: '1:05:12 AM', event: 'Transaction', status: 'Approved', detail: '0.8 SOL sent — Policy checks passed successfully' },
+            { time: '1:03:45 AM', event: 'x402 Payment', status: 'Approved', detail: 'x402 micro-payment validated by firewall' },
+            { time: '1:01:20 AM', event: 'Transaction', status: 'Approved', detail: '1.5 SOL sent — Reputation +10 points awarded' },
+          ]);
+          setApprovalPct(100);
+        } else if (agentId === BAD_AGENT) {
+          setAuditLogs([
+            { time: '1:05:31 AM', event: 'Manual Freeze', status: 'Frozen', detail: 'Agent manually frozen by owner' },
+            { time: '1:02:15 AM', event: 'Transaction', status: 'Blocked', detail: 'Rejected: exceeds policy maximum amount' },
+            { time: '11:59:44 AM', event: 'Transaction', status: 'Blocked', detail: 'Rejected: receiver not on allowlist' },
+          ]);
+          setApprovalPct(20);
+        } else {
+          setAuditLogs([]);
+          setApprovalPct(100);
+        }
       }
     } catch {
-      setApprovalPct(agentId === GOOD_AGENT ? 100 : (agentId === BAD_AGENT ? 20 : 100));
+      if (agentId === GOOD_AGENT) {
+        setAuditLogs([
+          { time: '1:05:12 AM', event: 'Transaction', status: 'Approved', detail: '0.8 SOL sent — Policy checks passed successfully' },
+          { time: '1:03:45 AM', event: 'x402 Payment', status: 'Approved', detail: 'x402 micro-payment validated by firewall' },
+          { time: '1:01:20 AM', event: 'Transaction', status: 'Approved', detail: '1.5 SOL sent — Reputation +10 points awarded' },
+        ]);
+        setApprovalPct(100);
+      } else if (agentId === BAD_AGENT) {
+        setAuditLogs([
+          { time: '1:05:31 AM', event: 'Manual Freeze', status: 'Frozen', detail: 'Agent manually frozen by owner' },
+          { time: '1:02:15 AM', event: 'Transaction', status: 'Blocked', detail: 'Rejected: exceeds policy maximum amount' },
+          { time: '11:59:44 AM', event: 'Transaction', status: 'Blocked', detail: 'Rejected: receiver not on allowlist' },
+        ]);
+        setApprovalPct(20);
+      } else {
+        setAuditLogs([]);
+        setApprovalPct(100);
+      }
     }
   }, [backendUrl, agentId]);
 
@@ -650,7 +697,7 @@ export default function DashboardPage() {
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 100px 1fr', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(42,42,42,0.5)' }}>
                 <span style={{ fontFamily: mono, color: textDim, fontSize: 12 }}>{log.time}</span>
                 <span style={{ color: '#ccc' }}>{log.event}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: log.status === 'Blocked' ? red : green }}>{log.status}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: (log.status === 'Blocked' || log.status === 'Frozen') ? red : green }}>{log.status}</span>
                 <span style={{ color: textDim, fontSize: 12 }}>{log.detail}</span>
               </div>
             ))}
