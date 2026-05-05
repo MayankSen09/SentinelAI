@@ -24,7 +24,18 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
 
-app.use(helmet()); // Apply critical web vulnerabilities headers (XSS, clickjacking, etc)
+app.use(
+  cors({
+    origin: "*", // Allow all origins for devnet demo
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: false,
+  contentSecurityPolicy: false,
+}));
 app.use(express.json({ limit: "50kb" })); // Prevent large payload DoS attacks
 
 // Global Rate Limiter (Security Audit Fix: Protect GET endpoints from DoS)
@@ -34,13 +45,6 @@ const apiRateLimiter = rateLimit({
   message: { status: "rejected", reason: "Global API Rate limit exceeded" },
 });
 app.use(apiRateLimiter);
-app.use(
-  cors({
-    origin: "*", // Allow all origins for devnet demo
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
-  })
-);
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +56,7 @@ app.get("/api/resource/:resourceId", handleResourceRequest);
 // Immutable Audit Log Endpoint (Req 20)
 app.get("/api/audit", async (_req, res) => {
   try {
-    const logPath = path.join(__dirname, "../../audit_log.jsonl");
+    const logPath = process.env.VERCEL ? "/tmp/audit_log.jsonl" : path.resolve(process.cwd(), "audit_log.jsonl");
     
     const fileStream = createReadStream(logPath);
     fileStream.on('error', () => {
@@ -111,3 +115,4 @@ if (require.main === module) {
 }
 
 export { app };
+export default app;
