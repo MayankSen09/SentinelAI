@@ -105,8 +105,8 @@ graph TB
 | Component | Platform | URL |
 |:----------|:---------|:----|
 | **Smart Contract** | Solana Devnet | [`4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH`](https://explorer.solana.com/address/4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH?cluster=devnet) |
-| **Frontend dApp** | Vercel | [sentinel-ai-dapp.vercel.app](https://sentinel-ai-dapp.vercel.app) |
-| **Backend API** | Railway | [sentinel-ai-backend-production.up.railway.app](https://sentinel-ai-backend-production.up.railway.app/health) |
+| **Frontend dApp** | Vercel | [sentinel-protocol-dashboard.vercel.app](https://sentinel-protocol-dashboard.vercel.app) |
+| **Backend API** | Vercel | [sentinelai-backend-coral.vercel.app](https://sentinelai-backend-coral.vercel.app) |
 
 ### Deployment Architecture
 
@@ -116,11 +116,11 @@ graph TB
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
 │   ┌───────────────────────┐         ┌───────────────────────┐             │
-│   │   VERCEL (Frontend)   │  API    │   RAILWAY (Backend)   │             │
+│   │   VERCEL (Frontend)   │  API    │    VERCEL (Backend)   │             │
 │   │                       │ ──────► │                       │             │
-│   │  sentinel-ai-dapp     │/execute │  sentinel-ai-backend  │             │
-│   │  .vercel.app          │ /logs   │  -production          │             │
-│   │                       │ /audit  │  .up.railway.app      │             │
+│   │  sentinel-protocol-   │/execute │  sentinelai-backend-  │             │
+│   │  dashboard.vercel.app │ /logs   │  coral.vercel.app     │             │
+│   │                       │ /audit  │                       │             │
 │   │  • Next.js 16         │         │                       │             │
 │   │  • Wallet Adapter     │         │  • Express + Node 20  │             │
 │   │  • Anchor IDL         │         │  • Firewall Validator │             │
