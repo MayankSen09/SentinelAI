@@ -229,7 +229,7 @@ sentinel/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/Vansh-Gokhale/SentinelAI.git
+git clone https://github.com/MayankSen09/SentinelAI.git
 cd SentinelAI
 bun install
 ```
