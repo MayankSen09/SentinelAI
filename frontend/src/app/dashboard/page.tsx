@@ -123,17 +123,17 @@ export default function DashboardPage() {
       const p = await res.json();
       
       if (agentId === GOOD_AGENT) {
-        setOnChainRep(p.reputationScore === 50 ? 95 : p.reputationScore);
+        setOnChainRep(p.reputationScore === 50 ? 95 : Math.min(100, p.reputationScore));
         setOnChainFrozen(p.frozen || false);
         setOnChainTotalTx(p.totalTransactions === 0 ? 142 : p.totalTransactions);
         setOnChainSuccessTx(p.successfulTransactions === 0 ? 142 : p.successfulTransactions);
       } else if (agentId === BAD_AGENT) {
-        setOnChainRep(p.reputationScore === 50 ? 15 : p.reputationScore);
+        setOnChainRep(p.reputationScore === 50 ? 15 : Math.min(100, p.reputationScore));
         setOnChainFrozen(p.frozen !== undefined ? p.frozen : true);
         setOnChainTotalTx(p.totalTransactions === 0 ? 24 : p.totalTransactions);
         setOnChainSuccessTx(p.successfulTransactions === 0 ? 5 : p.successfulTransactions);
       } else {
-        setOnChainRep(p.reputationScore);
+        setOnChainRep(p.reputationScore != null ? Math.min(100, p.reputationScore) : null);
         setOnChainFrozen(p.frozen);
         setOnChainTotalTx(p.totalTransactions);
         setOnChainSuccessTx(p.successfulTransactions);
@@ -190,8 +190,8 @@ export default function DashboardPage() {
           };
         });
         setAuditLogs(mapped);
-        const approved = logs.filter((l: any) => l.status === 'approved').length;
-        setApprovalPct(Math.round((approved / logs.length) * 100));
+        const approved = logs.filter((l: any) => l.status?.toLowerCase() === 'approved' || l.status === 'Approved').length;
+        setApprovalPct(logs.length === 0 ? 100 : Math.round((approved / logs.length) * 100));
       } else {
         if (agentId === GOOD_AGENT) {
           setAuditLogs([

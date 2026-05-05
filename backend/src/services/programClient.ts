@@ -155,7 +155,7 @@ export async function submitTransaction(
   }
 
   // ── Step 5: MagicBlock Ephemeral Rollup Execution Routing ─────────────
-  profile.reputationScore += 10;
+  profile.reputationScore = Math.min(100, profile.reputationScore + 10);
   profile.successfulTransactions += 1;
   profile.totalTransactions += 1;
   profile.consecutiveFailures = 0; // reset on success
