@@ -427,8 +427,8 @@ export default function DashboardPage() {
                   }}
                   style={{ background: inputBg, color: gold, border: `1px solid ${cardBorder}`, borderRadius: 6, padding: '6px 12px', fontSize: 13, outline: 'none', cursor: 'pointer' }}
                 >
-                  <option value={GOOD_AGENT}>Agent Alpha (High Trust)</option>
-                  <option value={BAD_AGENT}>Agent Beta (Rogue / Frozen)</option>
+                  <option value={GOOD_AGENT}>Agent Alpha ({GOOD_AGENT.slice(0,6)}...{GOOD_AGENT.slice(-6)})</option>
+                  <option value={BAD_AGENT}>Agent Beta ({BAD_AGENT.slice(0,6)}...{BAD_AGENT.slice(-6)})</option>
                 </select>
               </div>
             </div>
@@ -449,7 +449,8 @@ export default function DashboardPage() {
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="4" width="16" height="16" rx="3" /><circle cx="9" cy="9" r="1.5" fill="currentColor" /><circle cx="15" cy="9" r="1.5" fill="currentColor" /><circle cx="9" cy="15" r="1.5" fill="currentColor" /><circle cx="15" cy="15" r="1.5" fill="currentColor" /></svg>
                   <div>
                     <h3 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: 0 }}>Security Node Status</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: gold, marginTop: 4, fontFamily: mono, letterSpacing: 1 }}>TARGET: {agentId}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: onChainFrozen ? red : (connected ? green : textDim), boxShadow: `0 0 8px ${onChainFrozen ? red : (connected ? green : 'transparent')}`, display: 'inline-block' }} />
                       <span style={{ fontSize: 12, color: onChainFrozen ? red : (connected ? green : textDim) }}>{onChainFrozen ? 'Agent Frozen' : (connected ? 'Agent Active' : 'Not Connected')}</span>
                     </div>
