@@ -83,6 +83,9 @@ export default function DashboardPage() {
     { time: '—', event: 'System ready', status: 'Active', detail: 'Waiting for interactions' },
   ]);
   const [approvalPct, setApprovalPct] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [compactView, setCompactView] = useState(false);
   const agentId = 'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
 
   useEffect(() => {
@@ -273,14 +276,83 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: inputBg, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: '6px 14px' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textDim} strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-              <input type="text" placeholder="Search protocol..." style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: 13, width: 140 }} />
+              <input
+                type="text"
+                placeholder="Search protocol..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    addLog('Search', 'Approved', `Scanning for: "${(e.target as HTMLInputElement).value}"...`);
+                    (e.target as HTMLInputElement).value = '';
+                  }
+                }}
+                style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: 13, width: 140 }}
+              />
             </div>
-            <button style={{ background: 'none', border: 'none', color: textDim, cursor: 'pointer', padding: 6 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></svg>
-            </button>
-            <button style={{ background: 'none', border: 'none', color: textDim, cursor: 'pointer', padding: 6 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => { setShowNotifications(!showNotifications); setShowSettings(false); }}
+                style={{ background: 'none', border: 'none', color: showNotifications ? gold : textDim, cursor: 'pointer', padding: 6, transition: 'color 0.2s' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></svg>
+                {auditLogs.some(l => l.status === 'Blocked') && (
+                  <span style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, background: red, borderRadius: '50%', border: `1px solid ${darkBg}` }} />
+                )}
+              </button>
+              {showNotifications && (
+                <div style={{ position: 'absolute', top: 40, right: 0, width: 280, background: 'rgba(20,20,20,0.95)', border: `1px solid ${cardBorder}`, borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', padding: '12px 0', zIndex: 100 }}>
+                  <div style={{ padding: '0 16px 10px', borderBottom: `1px solid ${cardBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: gold, letterSpacing: 1 }}>RECENT ALERTS</span>
+                    <button onClick={() => setShowNotifications(false)} style={{ background: 'none', border: 'none', color: textDim, fontSize: 10, cursor: 'pointer' }}>CLOSE</button>
+                  </div>
+                  <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                    {auditLogs.slice(0, 5).map((l, i) => (
+                      <div key={i} style={{ padding: '10px 16px', borderBottom: i === 4 ? 'none' : '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 12 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.status === 'Approved' ? green : red, marginTop: 4, flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{l.event}</div>
+                          <div style={{ fontSize: 10, color: textDim, marginTop: 2 }}>{l.detail}</div>
+                          <div style={{ fontSize: 9, color: gold, marginTop: 4 }}>{l.time}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => { setShowSettings(!showSettings); setShowNotifications(false); }}
+                style={{ background: 'none', border: 'none', color: showSettings ? gold : textDim, cursor: 'pointer', padding: 6, transition: 'color 0.2s' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+              </button>
+              {showSettings && (
+                <div style={{ position: 'absolute', top: 40, right: 0, width: 220, background: 'rgba(20,20,20,0.95)', border: `1px solid ${cardBorder}`, borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', padding: '12px 0', zIndex: 100 }}>
+                  <div style={{ padding: '0 16px 10px', borderBottom: `1px solid ${cardBorder}`, marginBottom: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: gold, letterSpacing: 1 }}>SYSTEM SETTINGS</span>
+                  </div>
+                  <div style={{ padding: '4px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#eee' }}>Compact View</span>
+                      <button onClick={() => setCompactView(!compactView)} style={{ width: 32, height: 16, background: compactView ? gold : '#333', borderRadius: 8, border: 'none', cursor: 'pointer', position: 'relative' }}>
+                        <div style={{ width: 12, height: 12, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: compactView ? 18 : 2, transition: 'all 0.2s' }} />
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#eee' }}>High Contrast</span>
+                      <button style={{ width: 32, height: 16, background: '#333', borderRadius: 8, border: 'none', cursor: 'pointer', position: 'relative' }}>
+                        <div style={{ width: 12, height: 12, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: 2 }} />
+                      </button>
+                    </div>
+                    <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div style={{ fontSize: 9, color: textDim, marginBottom: 4 }}>RPC ENDPOINT</div>
+                      <div style={{ fontSize: 10, color: gold, wordBreak: 'break-all' }}>https://api.devnet.solana.com</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <WalletButton />
           </div>
         </div>
