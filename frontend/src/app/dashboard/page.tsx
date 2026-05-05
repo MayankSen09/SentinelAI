@@ -88,6 +88,7 @@ export default function DashboardPage() {
   const [compactView, setCompactView] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
   const [backendUrl, setBackendUrl] = useState(BACKEND_URL);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   
   const GOOD_AGENT = 'GoodAgent11111111111111111111111111111111111';
   const BAD_AGENT = 'BadAgent99999999999999999999999999999999999';
@@ -498,9 +499,9 @@ export default function DashboardPage() {
             {walletBalance !== null && (
               <div style={{ textAlign: 'center', fontSize: 11, color: textDim, padding: '4px 0' }}>Balance: <span style={{ color: gold, fontWeight: 600 }}>{walletBalance.toFixed(4)} SOL</span> (devnet)</div>
             )}
-            <button onClick={handleAirdrop} disabled={airdropping || !connected} style={{ background: 'transparent', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, padding: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: (airdropping || !connected) ? 0.5 : 1 }}>{airdropping ? 'Airdropping...' : '💧 Airdrop 1 SOL (devnet)'}</button>
+            <button onClick={handleAirdrop} disabled={airdropping || !connected} style={{ background: 'transparent', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, padding: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: (airdropping || !connected) ? 0.5 : 1 }}>{airdropping ? 'Airdropping...' : 'Airdrop 1 SOL (devnet)'}</button>
             <button onClick={handleInitScan} disabled={scanning} style={{ background: gold, color: '#000', border: 'none', borderRadius: 8, padding: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: scanning ? 0.6 : 1 }}>{scanning ? 'Scanning...' : 'Initiate Scan'}</button>
-            <button onClick={handleFreeze} style={{ background: onChainFrozen ? 'rgba(0,255,136,0.08)' : 'transparent', color: onChainFrozen ? green : red, border: `1px solid ${onChainFrozen ? 'rgba(0,255,136,0.3)' : 'rgba(255,68,102,0.3)'}`, borderRadius: 8, padding: 12, fontSize: 12, fontWeight: 600, letterSpacing: 1, cursor: 'pointer' }}>{onChainFrozen ? '🔓 UNFREEZE AGENT' : '❄ FREEZE ALL ASSETS'}</button>
+            <button onClick={handleFreeze} style={{ background: onChainFrozen ? 'rgba(0,255,136,0.08)' : 'transparent', color: onChainFrozen ? green : red, border: `1px solid ${onChainFrozen ? 'rgba(0,255,136,0.3)' : 'rgba(255,68,102,0.3)'}`, borderRadius: 8, padding: 12, fontSize: 12, fontWeight: 600, letterSpacing: 1, cursor: 'pointer' }}>{onChainFrozen ? 'UNFREEZE AGENT' : 'FREEZE ALL ASSETS'}</button>
           </div>
         </aside>
 
@@ -686,7 +687,7 @@ export default function DashboardPage() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="3" width="14" height="18" rx="2" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="9" y1="12" x2="15" y2="12" /><line x1="9" y1="16" x2="12" y2="16" /></svg>
                 AUDIT LOGS
               </h3>
-              <a href="#" style={{ fontSize: 12, color: textDim, textDecoration: 'none' }}>View Full History →</a>
+              <button onClick={(e) => { e.preventDefault(); setShowHistoryModal(true); }} style={{ background: 'none', border: 'none', fontSize: 12, color: textDim, cursor: 'pointer', padding: 0, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>View Full History &rarr;</button>
             </div>
             {/* Header */}
             <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 100px 1fr', gap: 12, padding: '8px 0', borderBottom: `1px solid ${cardBorder}`, color: textDim, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -929,5 +930,34 @@ console.log(status); // 'approved' or 'rejected'`}</pre>
         </main>
       </div>
     </div>
+
+    {/* Audit Log History Modal */}
+    {showHistoryModal && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 750, maxWidth: '90%', maxHeight: '80vh', background: '#0e0e0e', border: '1px solid #2a2a2a', borderRadius: 12, padding: 24, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottom: '1px solid #1f1f1f', paddingBottom: 12 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1, margin: 0, color: '#fff' }}>AUDIT LOG HISTORY</h3>
+            <button onClick={() => setShowHistoryModal(false)} style={{ background: 'none', border: '1px solid #333', color: '#999', borderRadius: 6, padding: '6px 12px', fontSize: 11, cursor: 'pointer', transition: 'all 0.2s' }}>CLOSE</button>
+          </div>
+          <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 140px 100px 1fr', gap: 12, padding: '8px 0', borderBottom: '1px solid #222', color: '#888', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>
+              <span>Timestamp</span><span>Event</span><span>Status</span><span>Details</span>
+            </div>
+            {auditLogs.length === 0 ? (
+              <div style={{ padding: '24px 0', textAlign: 'center', color: '#555', fontSize: 13 }}>No log entries found.</div>
+            ) : (
+              auditLogs.map((log, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '120px 140px 100px 1fr', gap: 12, padding: '12px 0', borderBottom: '1px solid #1a1a1a' }}>
+                  <span style={{ fontFamily: mono, color: '#666', fontSize: 12 }}>{log.time}</span>
+                  <span style={{ color: '#ccc', fontSize: 12, fontWeight: 500 }}>{log.event}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: (log.status === 'Blocked' || log.status === 'Frozen') ? red : green }}>{log.status}</span>
+                  <span style={{ color: '#888', fontSize: 12 }}>{log.detail}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    )}
   );
 }
