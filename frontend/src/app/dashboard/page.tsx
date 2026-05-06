@@ -92,13 +92,13 @@ export default function DashboardPage() {
   
   const GOOD_AGENT = 'GoodAgent11111111111111111111111111111111111';
   const BAD_AGENT = 'BadAgent99999999999999999999999999999999999';
-  const [agentId, setAgentId] = useState('');
-  const [inputAgentId, setInputAgentId] = useState('');
+  const [agentId, setAgentId] = useState(GOOD_AGENT);
+  const [inputAgentId, setInputAgentId] = useState(GOOD_AGENT);
 
   useEffect(() => {
     if (agentList.length === 0) {
-      addAgent(agentId);
-      setSelectedAgent(agentId);
+      addAgent(GOOD_AGENT);
+      setSelectedAgent(GOOD_AGENT);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

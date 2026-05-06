@@ -9,7 +9,7 @@ export function BadgeChips() {
 
   const badges: { id: string; label: string; icon: string; color: string }[] = [];
 
-  // Reliable Executor: 100+ transactions and >= 90% success
+  // Reliable Executor: 10+ transactions and >= 90% success
   const successRate = profile.totalTransactions > 0 ? (profile.successfulTransactions / profile.totalTransactions) : 0;
   if (profile.totalTransactions >= 10 && successRate >= 0.9) {
     badges.push({ id: 'reliable', label: 'Reliable Executor', icon: '💎', color: 'text-trusted bg-trusted/10 border-trusted/20' });

@@ -25,13 +25,19 @@ export function AgentStatus() {
       );
       const logs = await res.json();
 
-      // Calculate stats from logs
+      // Fetch precise profile from backend
+      const profileRes = await fetch(
+        `${BACKEND_URL}/profile?agent_pubkey=${selectedAgentPubkey}`
+      );
+      const profileData = await profileRes.json();
+
+      // Calculate stats from logs as local fallback
       const total = Array.isArray(logs) ? logs.length : 0;
       const successful = Array.isArray(logs)
         ? logs.filter((l: { status: string }) => l.status === 'approved').length
         : 0;
 
-      // Reputation: start at 50, +10 per approved, -5 per rejected
+      // Reputation fallback: start at 50, +10 per approved, -5 per rejected
       let reputation = 50;
       if (Array.isArray(logs)) {
         const reversed = [...logs].reverse();
@@ -46,9 +52,11 @@ export function AgentStatus() {
 
       setProfile({
         agentPubkey: selectedAgentPubkey,
-        reputationScore: reputation,
-        totalTransactions: total,
-        successfulTransactions: successful,
+        reputationScore: profileData.reputationScore !== undefined ? profileData.reputationScore : reputation,
+        totalTransactions: profileData.totalTransactions !== undefined ? profileData.totalTransactions : total,
+        successfulTransactions: profileData.successfulTransactions !== undefined ? profileData.successfulTransactions : successful,
+        consecutiveFailures: profileData.consecutiveFailures,
+        frozen: profileData.frozen,
       });
     } catch {
       // Keep existing profile on error

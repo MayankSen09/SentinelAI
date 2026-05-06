@@ -118,6 +118,7 @@ export async function submitTransaction(
 
   // ── Step 2: Policy Gate - Amount ────────────────────────────────────
   if (amount > policy.maxAmount) {
+    profile.totalTransactions += 1;
     profile.consecutiveFailures += 1;
     if (profile.consecutiveFailures >= 3) profile.frozen = true;
     
@@ -130,6 +131,7 @@ export async function submitTransaction(
   // ── Step 3: Policy Gate - Receiver ──────────────────────────────────
   const allowedReceiver = policy.allowedReceiver.toBase58();
   if (receiver !== allowedReceiver) {
+    profile.totalTransactions += 1;
     profile.consecutiveFailures += 1;
     if (profile.consecutiveFailures >= 3) profile.frozen = true;
 
@@ -145,6 +147,7 @@ export async function submitTransaction(
     amount > policy.highValueThreshold && 
     profile.reputationScore < policy.highValueMinReputation
   ) {
+    profile.totalTransactions += 1;
     profile.consecutiveFailures += 1;
     if (profile.consecutiveFailures >= 3) profile.frozen = true;
 

@@ -138,6 +138,7 @@ pub fn handler(ctx: Context<SubmitTransaction>, amount: u64) -> Result<()> {
     // ── Step 3: Policy Gate — Amount Check ──────────────────────────────
     // Property 6: If amount > max_amount → reject, no state change
     if amount > policy.max_amount {
+        profile.total_transactions = profile.total_transactions.saturating_add(1);
         // Circuit breaker: increment consecutive failures
         profile.consecutive_failures = profile.consecutive_failures.saturating_add(1);
         if profile.consecutive_failures >= AgentProfile::CIRCUIT_BREAKER_THRESHOLD {
@@ -174,6 +175,7 @@ pub fn handler(ctx: Context<SubmitTransaction>, amount: u64) -> Result<()> {
 
     // ── Step 4: Policy Gate — Receiver Check ────────────────────────────
     if ctx.accounts.receiver.key() != policy.allowed_receiver {
+        profile.total_transactions = profile.total_transactions.saturating_add(1);
         // Circuit breaker: increment consecutive failures
         profile.consecutive_failures = profile.consecutive_failures.saturating_add(1);
         if profile.consecutive_failures >= AgentProfile::CIRCUIT_BREAKER_THRESHOLD {
@@ -214,6 +216,7 @@ pub fn handler(ctx: Context<SubmitTransaction>, amount: u64) -> Result<()> {
         && amount > policy.high_value_threshold
         && profile.reputation_score < policy.high_value_min_reputation
     {
+        profile.total_transactions = profile.total_transactions.saturating_add(1);
         profile.consecutive_failures = profile.consecutive_failures.saturating_add(1);
         if profile.consecutive_failures >= AgentProfile::CIRCUIT_BREAKER_THRESHOLD {
             profile.frozen = true;
