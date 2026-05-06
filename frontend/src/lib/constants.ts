@@ -3,7 +3,7 @@
  */
 
 export const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sentinelai-production-2a88.up.railway.app';
 
 export const SOLANA_RPC_URL =
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://devnet.helius-rpc.com/?api-key=6f601163-6911-4b7d-98cb-02050e194810';
