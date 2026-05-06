@@ -106,7 +106,7 @@ graph TB
 |:----------|:---------|:----|
 | **Smart Contract** | Solana Devnet | [`4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH`](https://explorer.solana.com/address/4ytqEfZTGXUiDo1HXciUFDeTVqGT5AabLLFpTMysJLbH?cluster=devnet) |
 | **Frontend dApp** | Vercel | [sentinel-protocol-dashboard.vercel.app](https://sentinel-protocol-dashboard.vercel.app) |
-| **Backend API** | Vercel | [sentinelai-backend-coral.vercel.app](https://sentinelai-backend-coral.vercel.app) |
+| **Backend API** | Railway | [sentinelai-production-2a88.up.railway.app](https://sentinelai-production-2a88.up.railway.app) |
 
 ### Deployment Architecture
 
@@ -116,10 +116,10 @@ graph TB
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   ┌───────────────────────┐         ┌───────────────────────┐               │
-│   │   VERCEL (Frontend)   │  API    │    VERCEL (Backend)   │               │
+│   │   VERCEL (Frontend)   │  API    │   RAILWAY (Backend)   │               │
 │   │                       │ ──────► │                       │               │
-│   │  sentinel-protocol-   │/execute │  sentinelai-backend-  │               │
-│   │  dashboard.vercel.app │ /logs   │  coral.vercel.app     │               │
+│   │  sentinel-protocol-   │/execute │ sentinelai-production-│               │
+│   │  dashboard.vercel.app │ /logs   │ 2a88.up.railway.app   │               │
 │   │                       │ /audit  │                       │               │
 │   │  • Next.js 16         │         │                       │               │
 │   │  • Wallet Adapter     │         │  • Express + Node 20  │               │
