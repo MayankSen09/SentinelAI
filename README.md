@@ -330,6 +330,12 @@ anchor test
 
 ---
 
+## 🗺️ Roadmap
+
+- [ ] **Dynamic Allowlist Oracle**: Feed-driven asset restriction lists.
+- [ ] **Governance Thresholds**: Require multisig policy overriding.
+- [ ] **Zk-Compress Log Store**: Compress historical audit payloads using light-protocol.
+
 ## 📄 License
 
 MIT
