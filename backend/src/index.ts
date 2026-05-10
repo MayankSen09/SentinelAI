@@ -69,7 +69,12 @@ app.get("/", (_req, res) => {
 // x402 Resource HTTP 402 Flow Endpoint (Req 18)
 app.get("/api/resource/:resourceId", handleResourceRequest);
 
-// Immutable Audit Log Endpoint (Req 20)
+/**
+ * Immutable Audit Log Endpoint (Requirement 20).
+ * 
+ * Reads and streams the local JSONL audit logs. 
+ * Implements protective bounds to prevent memory overflow on large log processing.
+ */
 app.get("/api/audit", async (_req, res) => {
   try {
     const logPath = process.env.VERCEL ? "/tmp/audit_log.jsonl" : path.resolve(process.cwd(), "audit_log.jsonl");
@@ -105,7 +110,10 @@ app.get("/api/audit", async (_req, res) => {
   }
 });
 
-// Health check
+/**
+ * Health Check Endpoint.
+ * Used for container liveliness probes and cluster status verification.
+ */
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
