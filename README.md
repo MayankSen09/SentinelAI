@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Solana-Devnet-9945FF?style=for-the-badge&logo=solana&logoColor=white" alt="Solana Devnet" />
   <img src="https://img.shields.io/badge/Anchor-0.30-blueviolet?style=for-the-badge" alt="Anchor" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/Bun-Runtime-f5f5f5?style=for-the-badge&logo=bun&logoColor=black" alt="Bun" />
   <img src="https://img.shields.io/badge/Hackathon-Colosseum%20Frontier%202026-orange?style=for-the-badge" alt="Colosseum" />
