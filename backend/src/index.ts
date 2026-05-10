@@ -18,9 +18,10 @@ import * as readline from "readline";
 import { rateLimit } from "express-rate-limit";
 import executeRouter from "./routes/execute";
 import { handleResourceRequest } from "./routes/x402Resource";
+import { PORT, MAX_AUDIT_ENTRIES, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS } from "./constants";
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
+const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : (typeof PORT === 'string' ? parseInt(PORT) : PORT);
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
 
@@ -40,8 +41,8 @@ app.use(express.json({ limit: "50kb" })); // Prevent large payload DoS attacks
 
 // Global Rate Limiter (Security Audit Fix: Protect GET endpoints from DoS)
 const apiRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 500,
+  windowMs: RATE_LIMIT_WINDOW_MS, 
+  max: RATE_LIMIT_MAX_REQUESTS,
   message: { status: "rejected", reason: "Global API Rate limit exceeded" },
 });
 app.use(apiRateLimiter);
@@ -85,7 +86,7 @@ app.get("/api/audit", async (_req, res) => {
     });
 
     const entries: any[] = [];
-    const MAX_ENTRIES = 100; // DoS Protection: Bind memory limit
+    const MAX_ENTRIES = MAX_AUDIT_ENTRIES; // DoS Protection: Bind memory limit
 
     for await (const line of rl) {
       if (line.trim()) {
@@ -117,8 +118,8 @@ app.get("/health", (_req, res) => {
 // ─── Start Server ───────────────────────────────────────────────────────────
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`\n🛡️  SentinelAI Backend running on http://localhost:${PORT}`);
+  app.listen(SERVER_PORT, () => {
+    console.log(`\n🛡️  SentinelAI Backend running on http://localhost:${SERVER_PORT}`);
     console.log(`   Mode: ${process.env.DEMO_MODE === "true" ? "DEMO" : "PRODUCTION"}`);
     console.log(`   Endpoints:`);
     console.log(`     POST /execute  — Submit agent transaction`);
