@@ -18,6 +18,7 @@ import * as readline from "readline";
 import { rateLimit } from "express-rate-limit";
 import executeRouter from "./routes/execute";
 import { handleResourceRequest } from "./routes/x402Resource";
+import { LogEntry } from "./models/types";
 import { PORT, MAX_AUDIT_ENTRIES, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS } from "./constants";
 
 const app = express();
@@ -90,7 +91,7 @@ app.get("/api/audit", async (_req, res) => {
       crlfDelay: Infinity
     });
 
-    const entries: any[] = [];
+    const entries: LogEntry[] = [];
     const MAX_ENTRIES = MAX_AUDIT_ENTRIES; // DoS Protection: Bind memory limit
 
     for await (const line of rl) {
