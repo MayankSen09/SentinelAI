@@ -17,7 +17,10 @@ import type { AgentPolicy, ValidationResult } from "../models/types";
  *  1. amount <= policy.maxAmount
  *  2. receiver === policy.allowedReceiver
  *
- * Returns { valid, reason } — reason is descriptive on failure.
+ * @param policy The fetched on-chain agent policy
+ * @param amount Request transaction amount in lamports
+ * @param receiver Target public key string
+ * @returns ValidationResult with success boolean and diagnostic reason
  */
 export function validateTransaction(
   policy: AgentPolicy,
