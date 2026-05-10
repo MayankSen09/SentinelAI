@@ -128,14 +128,17 @@ app.get("/health", (_req, res) => {
 
 if (require.main === module) {
   app.listen(SERVER_PORT, () => {
-    console.log(`\n🛡️  SentinelAI Backend running on http://localhost:${SERVER_PORT}`);
-    console.log(`   Mode: ${process.env.DEMO_MODE === "true" ? "DEMO" : "PRODUCTION"}`);
-    console.log(`   Endpoints:`);
-    console.log(`     POST /execute  — Submit agent transaction`);
-    console.log(`     GET  /logs     — Retrieve activity log`);
-    console.log(`     GET  /api/audit — Retrieve immutable audit logs`);
-    console.log(`     GET  /api/resource/:id — x402 resource challenge`);
-    console.log(`     GET  /health   — Health check\n`);
+    console.log(`\n================================================================`);
+    console.log(` 🛡️  SentinelAI Backend is now actively monitoring`);
+    console.log(`================================================================`);
+    console.log(` 🚀 Endpoint: http://localhost:${SERVER_PORT}`);
+    console.log(` 🔐 Environment: ${process.env.DEMO_MODE === "true" ? "DEMO (Simulated)" : "PRODUCTION"}`);
+    console.log(`\n 📡 Enabled Routes:`);
+    console.log(`    • POST /execute        -> Agent Execution Gateway`);
+    console.log(`    • GET  /logs           -> Event Stream`);
+    console.log(`    • GET  /api/audit      -> Immutable Trail`);
+    console.log(`    • GET  /api/resource   -> x402 Verification`);
+    console.log(`================================================================\n`);
   });
 }
 
