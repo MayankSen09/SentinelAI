@@ -3,6 +3,9 @@
 /**
  * Zustand store for SentinelAI agent state.
  * Manages selected agent, profile, policy, and activity feed.
+ * 
+ * Contains reactive stores and utility setters consumed by the TopBar selector
+ * and main Dashboard statistics.
  *
  * Requirements: 14.3
  */
