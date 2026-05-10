@@ -97,10 +97,10 @@ app.get("/api/audit", async (_req, res) => {
     for await (const line of rl) {
       if (line.trim()) {
         try {
-          entries.push(JSON.parse(line));
-          if (entries.length > MAX_ENTRIES) {
-            entries.shift();
+          if (entries.length >= MAX_ENTRIES) {
+            entries.shift(); // Ring buffer behavior
           }
+          entries.push(JSON.parse(line));
         } catch(e) {}
       }
     }
