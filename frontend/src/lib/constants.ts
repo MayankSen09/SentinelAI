@@ -13,8 +13,17 @@ export const SOLANA_NETWORK = 'devnet' as const;
 export const MOCK_ALLOWED_RECEIVER =
   'GmVvumDq2BRsQTTWjwgEBSWYN3MoFU1niSBCYBUTRCaK';
 
+export interface SimulationPreset {
+  label: string;
+  description: string;
+  amount: number;
+  receiver: string;
+  payment_type: 'normal' | 'x402';
+  variant: 'valid' | 'invalid' | 'risky' | 'x402';
+}
+
 /** Simulation preset parameters */
-export const SIMULATION_PRESETS = {
+export const SIMULATION_PRESETS: Record<string, SimulationPreset> = {
   validTransaction: {
     label: 'Valid Transaction',
     description: 'Sends within policy limits to the correct receiver',
