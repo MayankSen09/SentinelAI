@@ -10,6 +10,7 @@
 import { useEffect, useCallback } from 'react';
 import { useAgentStore, ActivityEntry } from '@/store/agentStore';
 import { BACKEND_URL } from '@/lib/constants';
+import { formatTimestamp, formatNumber, truncateAddress } from '@/lib/formatting';
 
 interface ActivityFeedProps {
   /** Max entries to display (mobile-friendly) */
@@ -101,7 +102,7 @@ export function ActivityFeed({
 }
 
 function ActivityRow({ entry }: { entry: ActivityEntry }) {
-  const time = new Date(entry.timestamp).toLocaleTimeString();
+  const time = formatTimestamp(entry.timestamp);
 
   return (
     <div className="feed-row">
@@ -141,10 +142,8 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
             </span>
             {entry.amount !== undefined && (
               <span className="text-[11px] font-mono text-text-muted">
-                {entry.amount.toLocaleString()} lamports →{' '}
-                {entry.receiver
-                  ? `${entry.receiver.slice(0, 4)}...${entry.receiver.slice(-4)}`
-                  : '?'}
+                {formatNumber(entry.amount)} lamports →{' '}
+                {entry.receiver ? truncateAddress(entry.receiver) : '?'}
               </span>
             )}
           </div>
