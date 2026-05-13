@@ -20,7 +20,7 @@ import { fetchAgentPolicy, PolicyNotFoundError } from "../services/policyFetcher
 import { validateTransaction } from "../services/firewallValidator";
 import { routeX402 } from "../services/x402Router";
 import { isPrivateMode, buildResponse } from "../services/perHandler";
-import { submitTransaction } from "../services/programClient";
+import { submitTransaction, freezeAgent, unfreezeAgent, getProfile, getOrCreateProfile } from "../services/programClient";
 import { buildLogEntry, logTransaction, getLogs } from "../utils/logger";
 import { appendAuditLog } from "../services/auditLogger";
 import type { ExecuteResponse } from "../models/types";
@@ -147,7 +147,6 @@ router.post("/freeze", (req: Request, res: Response) => {
     res.status(400).json({ status: "error", reason: "Invalid agent_pubkey" });
     return;
   }
-  const { freezeAgent } = require("../services/programClient");
   freezeAgent(parsed.data.agent_pubkey);
 
   const logEntry = buildLogEntry(
@@ -168,7 +167,6 @@ router.post("/unfreeze", (req: Request, res: Response) => {
     res.status(400).json({ status: "error", reason: "Invalid agent_pubkey" });
     return;
   }
-  const { unfreezeAgent } = require("../services/programClient");
   unfreezeAgent(parsed.data.agent_pubkey);
 
   const logEntry = buildLogEntry(
@@ -189,7 +187,6 @@ router.get("/profile", (req: Request, res: Response) => {
     res.status(400).json({ error: "agent_pubkey query parameter required" });
     return;
   }
-  const { getProfile, getOrCreateProfile } = require("../services/programClient");
   const profile = getProfile(agentPubkey) || getOrCreateProfile(agentPubkey);
   res.json({
     agentPubkey: profile.agentPubkey?.toBase58?.() || agentPubkey,
