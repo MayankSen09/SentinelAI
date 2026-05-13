@@ -14,7 +14,11 @@ import type { AgentPolicy } from "../models/types";
 const AGENT_POLICY_SEED = "agent_policy";
 
 /**
- * Derive the AgentPolicy PDA address.
+ * Derive the AgentPolicy Program Derived Address (PDA).
+ *
+ * @param agentPubkey The agent's primary authority public key
+ * @param programId The Sentinel Solana program ID
+ * @returns A tuple containing the derived PDA and the bump seed
  */
 export function deriveAgentPolicyPDA(
   agentPubkey: PublicKey,
@@ -29,8 +33,14 @@ export function deriveAgentPolicyPDA(
 /**
  * Fetch an agent's policy from the Solana chain.
  *
- * In demo/simulation mode (when DEMO_MODE env var is set),
- * returns a mock policy for testing without a live program.
+ * In demo/simulation mode (when DEMO_MODE env var is set or connection/programId are omitted),
+ * returns a simulated policy for testing without executing on-chain RPCs.
+ *
+ * @param agentPubkey The target agent base58 address
+ * @param connection Optional Solana JSON RPC connection
+ * @param programId Optional program ID for PDA derivation
+ * @returns The parsed on-chain or simulated policy
+ * @throws PolicyNotFoundError if the policy does not exist on-chain
  */
 export async function fetchAgentPolicy(
   agentPubkey: string,
@@ -63,8 +73,11 @@ export async function fetchAgentPolicy(
 }
 
 /**
- * Deserialize raw account data into AgentPolicy.
- * Anchor accounts have an 8-byte discriminator prefix.
+ * Deserialize raw account data from the chain into an AgentPolicy object.
+ * Matches the Anchor layout structure with 8-byte discriminator prefix.
+ *
+ * @param data Raw account buffer from the RPC connection
+ * @returns Fully structured and deserialized AgentPolicy model
  */
 function deserializeAgentPolicy(data: Buffer): AgentPolicy {
   const offset = 8; // Skip Anchor discriminator
@@ -126,8 +139,11 @@ mockPolicies.set(BAD_AGENT, {
 });
 
 /**
- * Get or create a mock policy for the given agent.
- * Used in demo/simulation mode.
+ * Retrieve an existing mock policy or generate a default one if not found.
+ * Primarily utilized during simulated environments and backend-only testing.
+ *
+ * @param agentPubkey The base58 public key for the agent
+ * @returns The designated AgentPolicy
  */
 export function getMockPolicy(agentPubkey: string): AgentPolicy {
   if (mockPolicies.has(agentPubkey)) {
