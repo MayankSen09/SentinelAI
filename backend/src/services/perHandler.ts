@@ -51,3 +51,5 @@ export function buildResponse(
 export function isPrivateMode(privateMode: boolean): boolean {
   return privateMode === true;
 }
+
+// Core PER handler logic
