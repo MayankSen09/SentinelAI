@@ -28,3 +28,5 @@ export async function appendAuditLog(entry: LogEntry): Promise<void> {
     console.error("Failed to append to audit log", error);
   }
 }
+
+// Ensure logs are properly rotated in prod
