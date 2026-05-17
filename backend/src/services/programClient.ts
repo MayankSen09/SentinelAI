@@ -207,3 +207,5 @@ export function setProfileReputation(
 export function clearProfiles(): void {
   agentProfiles.clear();
 }
+
+// Client wrapper for Solana program
