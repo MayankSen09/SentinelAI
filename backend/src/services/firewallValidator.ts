@@ -57,3 +57,5 @@ export function validateTransaction(
     reason: "Transaction passes firewall validation",
   };
 }
+
+// Firewall validation core
