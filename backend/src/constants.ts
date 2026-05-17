@@ -12,3 +12,5 @@ export const PROGRAM_ID = process.env.PROGRAM_ID || 'CSjzuzfE3dc8D2jiECFvqjiWsxq
 export const MAX_AUDIT_ENTRIES = 100;
 export const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 export const RATE_LIMIT_MAX_REQUESTS = 500;
+
+// Shared constants across backend
