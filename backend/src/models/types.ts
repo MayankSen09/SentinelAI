@@ -66,3 +66,5 @@ export interface LogEntry {
   status: "approved" | "rejected";
   reason: string;
 }
+
+// Export all shared types
