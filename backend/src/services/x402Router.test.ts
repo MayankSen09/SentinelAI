@@ -47,3 +47,5 @@ describe("x402Router", () => {
     expect(result.reason).toContain("does not match policy allowed receiver");
   });
 });
+
+// TODO: Add route-specific tests
