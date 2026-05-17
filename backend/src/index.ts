@@ -144,3 +144,5 @@ if (require.main === module) {
 
 export { app };
 export default app;
+
+// Initialize main entry point
