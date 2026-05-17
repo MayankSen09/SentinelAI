@@ -72,3 +72,5 @@ export function getLogs(agentPubkey?: string): LogEntry[] {
 export function clearLogs(): void {
   logs.length = 0;
 }
+
+// Default logger configuration
