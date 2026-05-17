@@ -47,3 +47,5 @@ export function handleResourceRequest(req: Request, res: Response) {
     payment_receipt: paymentSig,
   });
 }
+
+// Router definition for x402
